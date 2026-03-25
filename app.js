@@ -145,9 +145,11 @@ createPodForm.addEventListener("submit", async (e) => {
     const location = document.getElementById("location").value.trim();
     const activityTitle = document.getElementById("activityTitle").value.trim();
     const activityDescription = document.getElementById("activityDescription").value.trim();
+    const activityRequirements = document.getElementById("activityRequirements").value.trim();
+    const moraleBudget = document.getElementById("moraleBudget").value.trim();
     const activityType = document.querySelector('input[name="activityType"]:checked')?.value;
 
-    if (!organizerName || !location || !activityTitle || !activityDescription || !activityType) {
+    if (!organizerName || !location || !activityTitle || !activityDescription || !activityRequirements || !moraleBudget || !activityType) {
         return;
     }
 
@@ -156,6 +158,8 @@ createPodForm.addEventListener("submit", async (e) => {
         location,
         activityTitle,
         activityDescription,
+        activityRequirements,
+        moraleBudget,
         activityType,
         status: "proposal",
         members: [{ name: organizerName, role: "Organizer", joinedAt: new Date().toISOString() }],
@@ -362,9 +366,17 @@ function openPodDetail(podId, data, status) {
             <div class="detail-value">${sanitize(data.activityType)}</div>
         </div>
         <div class="detail-section">
-            <div class="detail-label">Description & Requirements</div>
+            <div class="detail-label">Activity Description</div>
             <div class="detail-value">${sanitize(data.activityDescription)}</div>
         </div>
+        ${data.activityRequirements ? `<div class="detail-section">
+            <div class="detail-label">What's Needed</div>
+            <div class="detail-value">${sanitize(data.activityRequirements)}</div>
+        </div>` : ''}
+        ${data.moraleBudget ? `<div class="detail-section">
+            <div class="detail-label">Morale Budget Usage</div>
+            <div class="detail-value">${sanitize(data.moraleBudget)}</div>
+        </div>` : ''}
         ${dateSection}
         ${membersHTML}
     `;
