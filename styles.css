@@ -94,6 +94,46 @@ body::after {
     100% { opacity: 1; }
 }
 
+/* Flying rocket cat */
+.flying-cat {
+    position: fixed;
+    z-index: 0;
+    pointer-events: none;
+    animation: flyCat 30s linear infinite;
+    opacity: 0.12;
+    filter: drop-shadow(0 0 20px rgba(74, 159, 212, 0.4));
+}
+
+.flying-cat-img {
+    width: 180px;
+    height: auto;
+    transform: rotate(30deg);
+}
+
+@keyframes flyCat {
+    0% {
+        bottom: -15%;
+        left: -10%;
+        opacity: 0;
+    }
+    5% {
+        opacity: 0.12;
+    }
+    50% {
+        bottom: 50%;
+        left: 50%;
+        opacity: 0.15;
+    }
+    95% {
+        opacity: 0.12;
+    }
+    100% {
+        bottom: 110%;
+        left: 110%;
+        opacity: 0;
+    }
+}
+
 /* Ensure content sits above starfield */
 .header, .page, .modal-overlay, .btn-exit-admin {
     position: relative;
