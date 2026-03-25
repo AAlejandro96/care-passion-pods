@@ -563,3 +563,18 @@ closeDeleteConfirmModal.addEventListener("click", () => {
     closeModalFn(deleteConfirmModal);
 });
 
+deleteCancelBtn.addEventListener("click", () => {
+    deletePodId = null;
+    closeModalFn(deleteConfirmModal);
+});
+
+deleteConfirmBtn.addEventListener("click", async () => {
+    if (!deletePodId) return;
+    try {
+        await podsCollection.doc(deletePodId).delete();
+        deletePodId = null;
+        closeModalFn(deleteConfirmModal);
+    } catch (err) {
+        alert("Failed to delete pod: " + err.message);
+    }
+});
