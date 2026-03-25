@@ -13,6 +13,11 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const podsCollection = db.collection("pods");
+const siteContentCollection = db.collection("siteContent");
+
+// HIW (How It Works) page content elements
+const hiwBox1 = document.getElementById("hiwBox1");
+const hiwBox2 = document.getElementById("hiwBox2");
 
 // ===========================
 // DOM Elements
@@ -293,6 +298,17 @@ podsCollection
     });
 
 // ===========================
+// Load How It Works Content from Firestore
+// ===========================
+siteContentCollection.doc("howitworks").onSnapshot((doc) => {
+    if (doc.exists) {
+        const data = doc.data();
+        if (data.box1) hiwBox1.innerHTML = data.box1;
+        if (data.box2) hiwBox2.innerHTML = data.box2;
+    }
+});
+
+// ===========================
 // Pod Detail View
 // ===========================
 function openPodDetail(podId, data, status) {
@@ -493,6 +509,9 @@ adminLoginSubmitBtn.addEventListener("click", () => {
         document.body.classList.add("admin-mode");
         exitAdminBtn.style.display = "block";
         adminLoginBtn.textContent = "Admin ✓";
+        // Enable HIW editing
+        hiwBox1.contentEditable = "true";
+        hiwBox2.contentEditable = "true";
         closeModalFn(adminLoginModal);
     } else {
         adminError.style.display = "block";
@@ -508,6 +527,15 @@ adminPassword.addEventListener("keydown", (e) => {
 });
 
 function exitAdmin() {
+    // Save HIW content to Firestore
+    siteContentCollection.doc("howitworks").set({
+        box1: hiwBox1.innerHTML,
+        box2: hiwBox2.innerHTML
+    });
+    // Disable HIW editing
+    hiwBox1.contentEditable = "false";
+    hiwBox2.contentEditable = "false";
+
     isAdmin = false;
     document.body.classList.remove("admin-mode");
     exitAdminBtn.style.display = "none";
