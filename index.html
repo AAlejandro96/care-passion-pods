@@ -98,11 +98,19 @@
                     <input type="text" id="activityTitle" placeholder="e.g. Weekend Hiking Group" required>
                 </div>
                 <div class="form-group">
-                    <label for="activityDescription">4. Explain what the activity is and what requirements are needed (things to buy, technical knowledge, etc.)</label>
-                    <textarea id="activityDescription" rows="4" placeholder="Describe the activity and any requirements..." required></textarea>
+                    <label for="activityDescription">4. Activity Description</label>
+                    <textarea id="activityDescription" rows="4" placeholder="Describe what the activity is..." required></textarea>
                 </div>
                 <div class="form-group">
-                    <label>5. Is this activity In-Person, Hybrid, or Online?</label>
+                    <label for="activityRequirements">5. What will be needed for this activity?</label>
+                    <textarea id="activityRequirements" rows="3" placeholder="Stove? Hiking boots? Raspberry-pi? Good vibes?" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="moraleBudget">6. How will the morale budget be used?</label>
+                    <textarea id="moraleBudget" rows="3" placeholder="e.g. recipe ingredients, lunch after hike, science kit (provide link for purchase)" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>7. Is this activity In-Person, Hybrid, or Online?</label>
                     <div class="radio-group">
                         <label class="radio-label">
                             <input type="radio" name="activityType" value="In-Person" required>
@@ -344,11 +352,4 @@
         </div>
     </div>
 
-    <!-- Exit Admin View Button (only visible in admin mode) -->
-    <button class="btn-exit-admin" id="exitAdminBtn" style="display:none;">Exit Admin View</button>
 
-    <!-- Firebase SDK (compat mode, loaded via CDN) -->
-    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-    <script src="app.js"></script>
-</body>
