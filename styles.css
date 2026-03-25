@@ -840,6 +840,30 @@ body.admin-mode .btn-tile-delete {
     margin: 0 auto 32px auto;
 }
 
+.how-it-works-content[contenteditable="true"] {
+    outline: 2px dashed var(--blue-accent);
+    outline-offset: 4px;
+    cursor: text;
+}
+
+.how-it-works-content[contenteditable="true"]:focus {
+    outline: 2px solid var(--blue-accent);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15), 0 0 0 4px rgba(74, 159, 212, 0.2);
+}
+
+body.admin-mode .hiw-edit-hint {
+    display: block;
+}
+
+.hiw-edit-hint {
+    display: none;
+    text-align: center;
+    color: var(--blue-light);
+    font-size: 0.85rem;
+    margin-bottom: 16px;
+    font-style: italic;
+}
+
 .hiw-intro {
     font-size: 1.15rem;
     color: #1f2937;
