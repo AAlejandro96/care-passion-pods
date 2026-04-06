@@ -62,6 +62,9 @@ const dashboardTiles = document.getElementById("dashboard-tiles");
 const dashboardEmpty = document.getElementById("dashboard-empty");
 const proposalsTiles = document.getElementById("proposals-tiles");
 const proposalsEmpty = document.getElementById("proposals-empty");
+const reviewTiles = document.getElementById("review-tiles");
+const reviewEmpty = document.getElementById("review-empty");
+const adminReviewNavLink = document.querySelector('.nav-link-admin');
 
 // ===========================
 // State
@@ -156,7 +159,7 @@ createPodForm.addEventListener("submit", async (e) => {
         activityTitle,
         activityDescription,
         activityType,
-        status: "proposal",
+        status: "pending",
         votes: [],
         members: [{ name: organizerName, role: "Organizer", joinedAt: new Date().toISOString() }],
         dateTime: null,
@@ -529,7 +532,10 @@ adminLoginSubmitBtn.addEventListener("click", () => {
         isAdmin = true;
         document.body.classList.add("admin-mode");
         exitAdminBtn.style.display = "block";
-        adminLoginBtn.textContent = "Admin ✓";        enableAdminTextBoxes();        closeModalFn(adminLoginModal);
+        adminLoginBtn.textContent = "Admin \u2713";
+        adminReviewNavLink.style.display = "";
+        enableAdminTextBoxes();
+        closeModalFn(adminLoginModal);
     } else {
         adminError.style.display = "block";
     }
@@ -548,6 +554,11 @@ function exitAdmin() {
     document.body.classList.remove("admin-mode");
     exitAdminBtn.style.display = "none";
     adminLoginBtn.textContent = "Admin Log In";
+    adminReviewNavLink.style.display = "none";
+    // If on admin review page, navigate away
+    if (document.getElementById("page-adminreview").classList.contains("active")) {
+        navigateTo("dashboard");
+    }
     disableAdminTextBoxes();
 }
 
@@ -623,3 +634,66 @@ saveHowItWorks.addEventListener("click", async () => {
 savePodIdeas.addEventListener("click", async () => {
     await settingsDoc.set({ podIdeas: podIdeasText.value }, { merge: true });
 });
+
+// ===========================
+// Admin Review Page (Pending Pods)
+// ===========================
+function renderReviewTile(doc) {
+    const data = doc.data();
+    const catIdx = getCatIndex(doc.id);
+    const tile = document.createElement("div");
+    tile.className = "tile review-tile";
+    tile.innerHTML = `
+        <div class="tile-avatar cat-${catIdx}"></div>
+        <div class="tile-content">
+            <div class="tile-title">${sanitize(data.activityTitle)}</div>
+            <div class="tile-organizer">by ${sanitize(data.organizerName)}</div>
+            <div class="detail-section" style="margin-top:8px;">
+                <div class="detail-label">Location</div>
+                <div class="detail-value">${sanitize(data.location)}</div>
+            </div>
+            <div class="detail-section">
+                <div class="detail-label">Type</div>
+                <div class="detail-value">${sanitize(data.activityType)}</div>
+            </div>
+            <div class="detail-section">
+                <div class="detail-label">Description</div>
+                <div class="detail-value">${sanitize(data.activityDescription)}</div>
+            </div>
+            <div class="review-actions">
+                <button class="btn-approve" data-id="${doc.id}">Approve</button>
+                <button class="btn-reject" data-id="${doc.id}">Reject</button>
+            </div>
+        </div>
+    `;
+    tile.querySelector(".btn-approve").addEventListener("click", async (e) => {
+        e.stopPropagation();
+        await podsCollection.doc(doc.id).update({ status: "proposal" });
+    });
+    tile.querySelector(".btn-reject").addEventListener("click", async (e) => {
+        e.stopPropagation();
+        deletePodId = doc.id;
+        openModal(deleteConfirmModal);
+    });
+    return tile;
+}
+
+podsCollection
+    .where("status", "==", "pending")
+    .onSnapshot((snapshot) => {
+        reviewTiles.querySelectorAll(".tile").forEach(t => t.remove());
+
+        if (snapshot.empty) {
+            reviewEmpty.style.display = "block";
+        } else {
+            reviewEmpty.style.display = "none";
+            const docs = snapshot.docs.sort((a, b) => {
+                const aTime = a.data().createdAt?.toMillis() || 0;
+                const bTime = b.data().createdAt?.toMillis() || 0;
+                return bTime - aTime;
+            });
+            docs.forEach((doc) => {
+                reviewTiles.appendChild(renderReviewTile(doc));
+            });
+        }
+    });
