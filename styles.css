@@ -761,10 +761,9 @@ body.admin-mode .btn-tile-delete {
     color: var(--gray-darkest);
     background: var(--gray-lightest);
     resize: none;
-    overflow: hidden;
+    overflow-y: auto;
     line-height: 1.6;
     transition: border-color var(--transition), background var(--transition);
-    field-sizing: content;
 }
 
 .admin-textbox:not([readonly]) {
