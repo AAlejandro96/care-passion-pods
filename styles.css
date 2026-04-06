@@ -752,7 +752,7 @@ body.admin-mode .btn-tile-delete {
 
 .admin-textbox {
     width: 100%;
-    min-height: 80px;
+    min-height: 120px;
     padding: 14px 16px;
     border: 1px solid var(--gray-light);
     border-radius: var(--radius-sm);
@@ -764,6 +764,7 @@ body.admin-mode .btn-tile-delete {
     overflow: hidden;
     line-height: 1.6;
     transition: border-color var(--transition), background var(--transition);
+    field-sizing: content;
 }
 
 .admin-textbox:not([readonly]) {
