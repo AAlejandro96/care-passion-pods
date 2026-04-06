@@ -3,48 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Care Activity Pods</title>
+    <title>Care Passion Pods</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
-    <!-- Flying rocket cats background -->
-    <div class="flying-cat flying-cat-1">
-        <img src="logo.png" alt="" class="flying-cat-img">
-    </div>
-    <div class="flying-cat flying-cat-2">
-        <img src="cat-purple.png" alt="" class="flying-cat-img">
-    </div>
-    <div class="flying-cat flying-cat-3">
-        <img src="cat-blue.png" alt="" class="flying-cat-img">
-    </div>
-    <div class="flying-cat flying-cat-4">
-        <img src="cat-green.png" alt="" class="flying-cat-img">
-    </div>
-    <div class="flying-cat flying-cat-5">
-        <img src="cat-orange.png" alt="" class="flying-cat-img">
-    </div>
-    <div class="flying-cat flying-cat-6">
-        <img src="cat-blue.png" alt="" class="flying-cat-img">
-    </div>
-    <div class="flying-cat flying-cat-7">
-        <img src="cat-purple.png" alt="" class="flying-cat-img">
-    </div>
-    <div class="flying-cat flying-cat-8">
-        <img src="logo.png" alt="" class="flying-cat-img">
-    </div>
-
     <!-- Navigation -->
     <header class="header">
         <div class="header-left">
-            <img src="logo.png" alt="Care Activity Pods" class="logo-img">
-            <h1 class="logo">Care Activity Pods</h1>
+            <img src="logo.png" alt="Care Passion Pods" class="logo-img">
+            <h1 class="logo">Care Passion Pods</h1>
         </div>
         <nav class="nav-links">
-            <a href="#" class="nav-link active" data-page="dashboard">Activity Pods</a>
+            <a href="#" class="nav-link active" data-page="dashboard">Passion Pods</a>
             <a href="#" class="nav-link" data-page="proposals">Pod Proposals</a>
             <a href="#" class="nav-link" data-page="howitworks">How does this work?</a>
-            <a href="#" class="nav-link nav-link-admin" data-page="approval" id="approvalNavLink" style="display:none;">Pod Approval</a>
         </nav>
         <div class="header-right">
             <button class="btn-create" id="createPodBtn">+ Create a Pod</button>
@@ -55,7 +28,7 @@
     <!-- Dashboard Page -->
     <main class="page active" id="page-dashboard">
         <div class="page-header">
-            <h2>Activity Pods Dashboard</h2>
+            <h2>Passion Pods Dashboard</h2>
         </div>
         <div class="tiles-container" id="dashboard-tiles">
             <div class="empty-state" id="dashboard-empty">
@@ -86,12 +59,9 @@
                 <button class="modal-close" id="closeCreateModal">&times;</button>
             </div>
             <form id="createPodForm" class="modal-body">
-                <div class="form-notice">
-                    <strong>📝 Please note:</strong> Enter your valid full name and provide a clear explanation of the activity and its details. Pod proposals that do not meet this criteria will not be approved.
-                </div>
                 <div class="form-group">
-                    <label for="organizerName">1. Name</label>
-                    <input type="text" id="organizerName" placeholder="Enter your name" required>
+                    <label for="organizerName">1. Name / Alias</label>
+                    <input type="text" id="organizerName" placeholder="Enter your name or alias" required>
                 </div>
                 <div class="form-group">
                     <label for="location">2. Where are you located?</label>
@@ -102,19 +72,11 @@
                     <input type="text" id="activityTitle" placeholder="e.g. Weekend Hiking Group" required>
                 </div>
                 <div class="form-group">
-                    <label for="activityDescription">4. Activity Description</label>
-                    <textarea id="activityDescription" rows="4" placeholder="Describe what the activity is..." required></textarea>
+                    <label for="activityDescription">4. Explain what the activity is and what requirements are needed (things to buy, technical knowledge, etc.)</label>
+                    <textarea id="activityDescription" rows="4" placeholder="Describe the activity and any requirements..." required></textarea>
                 </div>
                 <div class="form-group">
-                    <label for="activityRequirements">5. What will be needed for this activity?</label>
-                    <textarea id="activityRequirements" rows="3" placeholder="Stove? Hiking boots? Raspberry-pi? Good vibes?" required></textarea>
-                </div>
-                <div class="form-group">
-                    <label for="moraleBudget">6. How will the morale budget be used?</label>
-                    <textarea id="moraleBudget" rows="3" placeholder="e.g. recipe ingredients, lunch after hike, science kit (provide link for purchase)" required></textarea>
-                </div>
-                <div class="form-group">
-                    <label>7. Is this activity In-Person, Hybrid, or Online?</label>
+                    <label>5. Is this activity In-Person, Hybrid, or Online?</label>
                     <div class="radio-group">
                         <label class="radio-label">
                             <input type="radio" name="activityType" value="In-Person" required>
@@ -147,7 +109,7 @@
             </div>
             <div class="modal-body">
                 <div class="success-icon">✅</div>
-                <p>Thanks for the submission! Your pod has been sent to the admin for review. Once approved, it will appear on the <strong>Pod Proposals</strong> page where others can join. If you get a vote from one person (minimum), then the pod will be active for you to do! It will also be posted on the general dashboard for others to see and join in.</p>
+                <p>Thanks for the submission! Your pod will go to the <strong>Pod Proposals</strong> page. Once 3 people vote for it, the pod will become active and be posted on the Passion Pods dashboard for others to see and join in.</p>
                 <button class="btn-submit" id="successOkBtn">OK</button>
             </div>
         </div>
@@ -169,24 +131,38 @@
         </div>
     </div>
 
-    <!-- Join Modal -->
+    <!-- Join / Vote Modal -->
     <div class="modal-overlay" id="joinModal">
         <div class="modal modal-small">
             <div class="modal-header">
-                <h3>Join this Pod</h3>
+                <h3 id="joinModalTitle">Join this Pod</h3>
                 <button class="modal-close" id="closeJoinModal">&times;</button>
             </div>
             <div class="modal-body">
                 <div class="form-group">
-                    <label for="joinName">Your Name</label>
-                    <input type="text" id="joinName" placeholder="Enter your name" required>
+                    <label for="joinName">Your Name & Alias</label>
+                    <input type="text" id="joinName" placeholder="Enter your name & alias" required>
                 </div>
                 <button class="btn-submit" id="joinSubmitBtn">Join</button>
             </div>
         </div>
     </div>
 
-    <!-- Join Success Modal (for proposals) -->
+    <!-- Vote Success Modal (vote counted but pod not yet active) -->
+    <div class="modal-overlay" id="voteSuccessModal">
+        <div class="modal modal-small">
+            <div class="modal-header">
+                <h3>Vote Counted! 🗳️</h3>
+                <button class="modal-close" id="closeVoteSuccessModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Your vote has been counted! This pod needs <strong id="votesRemaining"></strong> more vote(s) to become active.</p>
+                <button class="btn-submit" id="voteSuccessOkBtn">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Join Success Modal (for proposals - pod launched after 3 votes) -->
     <div class="modal-overlay" id="joinSuccessProposalModal">
         <div class="modal modal-small">
             <div class="modal-header">
@@ -194,7 +170,7 @@
                 <button class="modal-close" id="closeJoinSuccessProposalModal">&times;</button>
             </div>
             <div class="modal-body">
-                <p>Yay! This pod is launched. You and the organizer can now move forward with this activity.</p>
+                <p>This pod got 3 votes and is now active! You and the other pod members can now move forward with this activity.</p>
                 <button class="btn-submit" id="joinSuccessProposalOkBtn">OK</button>
             </div>
         </div>
@@ -252,93 +228,13 @@
         </div>
     </div>
 
-    <!-- Pod Approval Page (Admin Only) -->
-    <main class="page" id="page-approval">
-        <div class="page-header">
-            <h2>Pod Approval</h2>
-        </div>
-        <h3 class="approval-section-heading">Pending Approval</h3>
-        <div class="tiles-container" id="approval-tiles">
-            <div class="empty-state" id="approval-empty">
-                <div class="empty-icon">📬</div>
-                <p>No pods are waiting for approval</p>
-            </div>
-        </div>
-        <h3 class="approval-section-heading approval-declined-heading">Declined</h3>
-        <div class="tiles-container" id="declined-tiles">
-            <div class="empty-state" id="declined-empty">
-                <div class="empty-icon">🚫</div>
-                <p>No declined pods</p>
-            </div>
-        </div>
-    </main>
-
     <!-- How Does This Work Page -->
     <main class="page" id="page-howitworks">
         <div class="page-header">
             <h2>How Does This Work?</h2>
         </div>
-        <p class="hiw-edit-hint">✏️ Admin mode: Click on the text boxes below to edit. Changes save when you exit admin view.</p>
-        <div class="how-it-works-content" id="hiwBox1">
-            <p class="hiw-intro"><strong>Activity Pods</strong> are small, community-driven groups where teammates come together around a shared interest or activity.</p>
-
-            <div class="hiw-step">
-                <h3>1. Create or join a pod</h3>
-                <ul>
-                    <li>Browse the <strong>Activity Pods board</strong> to see what's been proposed.</li>
-                    <li>You can <strong>join an existing pod</strong> or <strong>propose a new one</strong>.</li>
-                    <li>A pod is only activated once it has <strong>at least one +1</strong> (no solo pods &mdash; this is about building community!).</li>
-                </ul>
-            </div>
-
-            <div class="hiw-step">
-                <h3>2. Pod creators: confirm +1 and set details</h3>
-                <p>If you propose a pod:</p>
-                <ul>
-                    <li>Check back on the board to confirm <strong>someone has joined your pod</strong>.</li>
-                    <li>You <strong>cannot move forward</strong> until another teammate has joined.</li>
-                    <li>Once confirmed, <strong>update your pod</strong> with the <strong>date and time</strong> as soon as it's established.</li>
-                </ul>
-            </div>
-
-            <div class="hiw-step">
-                <h3>3. Use your morale <u>spend</u></h3>
-                <ul>
-                    <li><u>Your</u> <strong>per-person morale stipend</strong> is what you use to fund or participate in your pod activity.</li>
-                    <li>Pod activities <strong>must follow standard morale spend guidelines</strong>.</li>
-                    <li>To keep things simple and fair, <strong>please join only ONE pod</strong>.</li>
-                </ul>
-            </div>
-
-            <div class="hiw-step">
-                <h3>4. Do the activity &amp; share</h3>
-                <ul>
-                    <li>Pods complete their activity locally (same kit, ingredients, or theme).</li>
-                    <li><strong>Photos from pod activities will be shared during team syncs</strong>, so everyone can celebrate and learn from each other.</li>
-                </ul>
-                <p class="hiw-reminder"><strong>Reminder:</strong> Choose activities that create a shared experience and story &mdash; not just a purchase.</p>
-            </div>
-        </div>
-
-        <div class="how-it-works-content" id="hiwBox2">
-            <div class="hiw-examples">
-                <h3>Pod Examples</h3>
-                <p>Below are examples of Activity Pods to help spark ideas. These are just starting points &mdash; pods can be adapted based on local availability.</p>
-                <ol class="hiw-examples-list">
-                    <li><strong class="hiw-pod-name">Bake-Along Pod</strong><br>Everyone bakes the same cake or cookie recipe using locally sourced ingredients.</li>
-                    <li><strong class="hiw-pod-name">Bread Basics Pod</strong><br>A shared focus on making bread (same technique, flexible recipes).</li>
-                    <li><strong class="hiw-pod-name">Science at Home Pod</strong><br>Simple, safe science experiment kits or guided experiments done locally.</li>
-                    <li><strong class="hiw-pod-name">Paint &amp; Create Pod</strong><br>Paint-by-number, watercolor, or simple art kits &mdash; same medium, individual styles.</li>
-                    <li><strong class="hiw-pod-name">DIY Craft Pod</strong><br>Clay, origami, embroidery, or other hands-on crafts sourced locally.</li>
-                    <li><strong class="hiw-pod-name">Terrarium Builders Pod</strong><br>Build small plant terrariums using materials from local shops.</li>
-                    <li><strong class="hiw-pod-name">Book Club Pod</strong><br>Everyone reads the same book or topic and shares takeaways.</li>
-                    <li><strong class="hiw-pod-name">Learn Something New Pod</strong><br>A short course or learning kit, followed by a quick share-back.</li>
-                    <li><strong class="hiw-pod-name">Regional Recipe Pod</strong><br>Same base recipe, with local or cultural twists shared afterward.</li>
-                    <li><strong class="hiw-pod-name">Mini Maker Pod</strong><br>Small build projects (e.g., beginner kits or household builds) completed and shared.</li>
-                </ol>
-            </div>
-
-            <p class="hiw-reminder hiw-final"><em>Reminder: Pods require at least one +1 to activate &mdash; check the board and join what excites you!</em></p>
+        <div class="how-it-works-content">
+            <p>Content coming soon...</p>
         </div>
     </main>
 
@@ -356,22 +252,6 @@
                 </div>
                 <p class="error-msg" id="adminError" style="display:none;">Incorrect password. Try again.</p>
                 <button class="btn-submit" id="adminLoginSubmitBtn">Log In</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Approval Detail Modal (Admin reviews pending pod) -->
-    <div class="modal-overlay" id="approvalDetailModal">
-        <div class="modal">
-            <div class="modal-header">
-                <h3 id="approvalDetailTitle"></h3>
-                <button class="modal-close" id="closeApprovalDetailModal">&times;</button>
-            </div>
-            <div class="modal-body" id="approvalDetailBody">
-                <!-- Dynamically populated -->
-            </div>
-            <div class="modal-footer" id="approvalDetailFooter">
-                <!-- Approve / Decline / Close buttons -->
             </div>
         </div>
     </div>
@@ -402,3 +282,4 @@
     <script src="app.js"></script>
 </body>
 </html>
+
