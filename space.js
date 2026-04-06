@@ -153,11 +153,15 @@
 
     function spawnCat() {
         const imgIdx = Math.floor(Math.random() * catImages.length);
-        const size = Math.random() * 30 + 30; // 30-60px
+        // Depth: 0 = far away, 1 = close
+        const depth = Math.random();
+        const size = depth * 60 + 20; // 20-80px (far=small, close=big)
+        const alpha = depth * 0.35 + 0.15; // 0.15-0.50 (far=dim, close=bright)
+        const speed = depth * 0.4 + 0.1; // far=slow, close=fast
+
         // Random edge: 0=left, 1=right, 2=top, 3=bottom
         const edge = Math.floor(Math.random() * 4);
         let x, y, vx, vy;
-        const speed = Math.random() * 0.4 + 0.15;
 
         switch (edge) {
             case 0: // from left
@@ -190,7 +194,7 @@
             x, y, vx, vy,
             size,
             imgIdx,
-            alpha: Math.random() * 0.15 + 0.08,
+            alpha,
             wobbleAmp: Math.random() * 15 + 5,
             wobbleSpeed: Math.random() * 0.002 + 0.001,
             wobbleOffset: Math.random() * Math.PI * 2,
