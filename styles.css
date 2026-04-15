@@ -173,6 +173,14 @@ body {
     display: block;
 }
 
+#page-reporting {
+    background: var(--white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 40px;
+    margin-top: 24px;
+}
+
 .page-header {
     margin-bottom: 24px;
 }
@@ -910,17 +918,21 @@ body.admin-mode .btn-tile-delete {
 /* ===========================
    Reporting Dashboard
    =========================== */
+#page-reporting .page-header h2 {
+    color: var(--gray-darkest);
+}
+
 .report-filters {
     display: flex;
     align-items: center;
     gap: 10px;
-    margin-bottom: 24px;
+    margin-bottom: 32px;
 }
 
 .report-filters label {
     font-size: 0.9rem;
     font-weight: 600;
-    color: var(--white);
+    color: var(--gray-darkest);
 }
 
 .report-filters select {
@@ -936,15 +948,15 @@ body.admin-mode .btn-tile-delete {
 .report-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: 16px;
-    margin-bottom: 32px;
+    gap: 20px;
+    margin-bottom: 40px;
 }
 
 .report-card {
-    background: var(--white);
+    background: var(--gray-lightest);
     border-radius: var(--radius);
-    padding: 20px;
-    box-shadow: var(--shadow);
+    padding: 24px;
+    box-shadow: none;
     text-align: center;
     border: 1px solid var(--gray-light);
 }
@@ -973,15 +985,15 @@ body.admin-mode .btn-tile-delete {
 .report-details {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 20px;
-    margin-bottom: 24px;
+    gap: 24px;
+    margin-bottom: 32px;
 }
 
 .report-section {
-    background: var(--white);
+    background: var(--gray-lightest);
     border-radius: var(--radius);
-    padding: 24px;
-    box-shadow: var(--shadow);
+    padding: 28px;
+    box-shadow: none;
     border: 1px solid var(--gray-light);
 }
 
@@ -1046,7 +1058,9 @@ body.admin-mode .btn-tile-delete {
 }
 
 .report-summary-section {
-    margin-top: 0;
+    margin-top: 8px;
+    background: var(--gray-lightest);
+    border: 1px solid var(--gray-light);
 }
 
 .report-summary-text {
