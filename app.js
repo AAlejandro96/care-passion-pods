@@ -92,6 +92,31 @@ function resolveAlias(input) {
     return aliasMap[key] || null;
 }
 
+// ===========================
+// Pod Cache (for membership checks)
+// ===========================
+let cachedProposalPods = {};
+let cachedActivePods = {};
+let cachedPendingPods = {};
+
+function getAllPods() {
+    return { ...cachedPendingPods, ...cachedProposalPods, ...cachedActivePods };
+}
+
+function findUserPod(fullName) {
+    const all = getAllPods();
+    for (const [podId, data] of Object.entries(all)) {
+        if (data.members && data.members.some(m => m.name === fullName)) {
+            const member = data.members.find(m => m.name === fullName);
+            return { podId, data, role: member.role };
+        }
+        if (data.votes && data.votes.some(v => v.name === fullName)) {
+            return { podId, data, role: "Voter" };
+        }
+    }
+    return null;
+}
+
 // Admin DOM elements
 const adminLoginBtn = document.getElementById("adminLoginBtn");
 const adminLoginModal = document.getElementById("adminLoginModal");
@@ -196,6 +221,21 @@ createPodForm.addEventListener("submit", async (e) => {
     if (!fullName) {
         alert("Invalid alias");
         return;
+    }
+
+    // Check if already in a pod
+    const existingPod = findUserPod(fullName);
+    if (existingPod) {
+        if (existingPod.role === "Organizer" && existingPod.data.status === "pending") {
+            if (confirm(`You are the organizer of "${existingPod.data.activityTitle}" which is pending admin review. Delete it to create a new pod?`)) {
+                await podsCollection.doc(existingPod.podId).delete();
+            } else {
+                return;
+            }
+        } else {
+            alert(`You are already in the pod "${existingPod.data.activityTitle}". You must leave that pod before creating a new one.`);
+            return;
+        }
     }
 
     const pod = {
@@ -309,6 +349,10 @@ function renderActiveTile(doc) {
 podsCollection
     .where("status", "==", "proposal")
     .onSnapshot((snapshot) => {
+        // Update cache
+        cachedProposalPods = {};
+        snapshot.docs.forEach(doc => { cachedProposalPods[doc.id] = doc.data(); });
+
         // Clear tiles but keep empty state element
         proposalsTiles.querySelectorAll(".tile").forEach(t => t.remove());
 
@@ -331,6 +375,10 @@ podsCollection
 podsCollection
     .where("status", "==", "active")
     .onSnapshot((snapshot) => {
+        // Update cache
+        cachedActivePods = {};
+        snapshot.docs.forEach(doc => { cachedActivePods[doc.id] = doc.data(); });
+
         dashboardTiles.querySelectorAll(".tile").forEach(t => t.remove());
 
         if (snapshot.empty) {
@@ -411,12 +459,24 @@ function openPodDetail(podId, data, status) {
 
     detailFooter.innerHTML = `
         <button class="btn-exit" id="detailExitBtn">Exit</button>
+        <button class="btn-leave" id="detailLeaveBtn">${status === "proposal" ? "Withdraw Vote" : "Leave Pod"}</button>
         <button class="btn-join" id="detailJoinBtn">${status === "proposal" ? "Vote" : "Join"}</button>
     `;
 
     // Wire up footer buttons
     document.getElementById("detailExitBtn").addEventListener("click", () => {
         closeModalFn(podDetailModal);
+    });
+
+    document.getElementById("detailLeaveBtn").addEventListener("click", () => {
+        closeModalFn(podDetailModal);
+        const leaveNameInput = document.getElementById("leaveName");
+        leaveNameInput.value = "";
+        const leaveModalTitle = document.getElementById("leaveModalTitle");
+        leaveModalTitle.textContent = status === "proposal" ? "Withdraw Vote" : "Leave Pod";
+        const leaveSubmitBtn = document.getElementById("leaveSubmitBtn");
+        leaveSubmitBtn.textContent = status === "proposal" ? "Withdraw" : "Leave";
+        openModal(document.getElementById("leaveModal"));
     });
 
     document.getElementById("detailJoinBtn").addEventListener("click", () => {
@@ -461,6 +521,17 @@ joinSubmitBtn.addEventListener("click", async () => {
     const fullName = resolveAlias(aliasInput);
     if (!fullName) {
         alert("Invalid alias");
+        return;
+    }
+
+    // Check if already in a pod
+    const existingPod = findUserPod(fullName);
+    if (existingPod) {
+        if (existingPod.podId === currentPodId) {
+            alert("You are already in this pod.");
+        } else {
+            alert(`You are already in the pod "${existingPod.data.activityTitle}". You must leave that pod before joining another.`);
+        }
         return;
     }
 
@@ -743,6 +814,10 @@ function renderReviewTile(doc) {
 podsCollection
     .where("status", "==", "pending")
     .onSnapshot((snapshot) => {
+        // Update cache
+        cachedPendingPods = {};
+        snapshot.docs.forEach(doc => { cachedPendingPods[doc.id] = doc.data(); });
+
         reviewTiles.querySelectorAll(".tile").forEach(t => t.remove());
 
         if (snapshot.empty) {
@@ -759,3 +834,70 @@ podsCollection
             });
         }
     });
+
+// ===========================
+// Leave / Withdraw from Pod
+// ===========================
+const leaveModal = document.getElementById("leaveModal");
+const closeLeaveModal = document.getElementById("closeLeaveModal");
+
+closeLeaveModal.addEventListener("click", () => closeModalFn(leaveModal));
+
+document.getElementById("leaveSubmitBtn").addEventListener("click", async () => {
+    const aliasInput = document.getElementById("leaveName").value.trim();
+    if (!aliasInput) return;
+
+    const fullName = resolveAlias(aliasInput);
+    if (!fullName) {
+        alert("Invalid alias");
+        return;
+    }
+
+    const podRef = podsCollection.doc(currentPodId);
+    const podSnap = await podRef.get();
+    if (!podSnap.exists) {
+        alert("This pod no longer exists.");
+        closeModalFn(leaveModal);
+        return;
+    }
+    const podData = podSnap.data();
+
+    // Check if organizer — organizer deletes the pod
+    const isOrganizer = podData.members && podData.members.some(m => m.name === fullName && m.role === "Organizer");
+    if (isOrganizer) {
+        if (confirm("As the organizer, this will delete the entire pod. Are you sure?")) {
+            await podRef.delete();
+            closeModalFn(leaveModal);
+            alert("Your pod has been deleted.");
+        }
+        return;
+    }
+
+    // Check if member of active pod
+    if (podData.status === "active") {
+        const memberEntry = podData.members && podData.members.find(m => m.name === fullName);
+        if (memberEntry) {
+            await podRef.update({
+                members: firebase.firestore.FieldValue.arrayRemove(memberEntry)
+            });
+            closeModalFn(leaveModal);
+            alert("You have left this pod.");
+            return;
+        }
+    }
+
+    // Check if voter on proposal
+    if (podData.status === "proposal") {
+        const voteEntry = podData.votes && podData.votes.find(v => v.name === fullName);
+        if (voteEntry) {
+            await podRef.update({
+                votes: firebase.firestore.FieldValue.arrayRemove(voteEntry)
+            });
+            closeModalFn(leaveModal);
+            alert("Your vote has been withdrawn.");
+            return;
+        }
+    }
+
+    alert("You are not part of this pod.");
+});
