@@ -24,6 +24,7 @@
             <a href="#" class="nav-link" data-page="proposals">Pod Proposals</a>
             <a href="#" class="nav-link" data-page="howitworks">How does this work?</a>
             <a href="#" class="nav-link nav-link-admin" data-page="adminreview" style="display:none;">Admin Review</a>
+            <a href="#" class="nav-link nav-link-admin" data-page="reporting" style="display:none;">Reporting</a>
         </nav>
         <div class="header-right">
             <button class="btn-create" id="createPodBtn">+ Create a Pod</button>
@@ -281,6 +282,73 @@
                 <div class="empty-icon">📝</div>
                 <p>No pods pending review.</p>
             </div>
+        </div>
+    </main>
+
+    <!-- Reporting Page (admin only) -->
+    <main class="page" id="page-reporting">
+        <div class="page-header">
+            <h2>Reporting Dashboard</h2>
+        </div>
+        <div class="report-filters">
+            <label for="reportTimeFilter">Time Period:</label>
+            <select id="reportTimeFilter">
+                <option value="all">All Time</option>
+                <option value="30">Last 30 Days</option>
+                <option value="90">Last 90 Days (Quarter)</option>
+                <option value="180">Last 6 Months</option>
+                <option value="365">Last Year</option>
+            </select>
+        </div>
+        <div class="report-grid">
+            <div class="report-card">
+                <div class="report-card-icon">🟢</div>
+                <div class="report-card-value" id="statActivePods">0</div>
+                <div class="report-card-label">Active Pods</div>
+            </div>
+            <div class="report-card">
+                <div class="report-card-icon">📋</div>
+                <div class="report-card-value" id="statProposedPods">0</div>
+                <div class="report-card-label">Proposed Pods</div>
+            </div>
+            <div class="report-card">
+                <div class="report-card-icon">⏳</div>
+                <div class="report-card-value" id="statPendingPods">0</div>
+                <div class="report-card-label">Pending Review</div>
+            </div>
+            <div class="report-card">
+                <div class="report-card-icon">❌</div>
+                <div class="report-card-value" id="statRejectedPods">0</div>
+                <div class="report-card-label">Rejected Pods</div>
+            </div>
+            <div class="report-card">
+                <div class="report-card-icon">👥</div>
+                <div class="report-card-value" id="statTotalParticipants">0</div>
+                <div class="report-card-label">Total Participants</div>
+            </div>
+            <div class="report-card">
+                <div class="report-card-icon">📊</div>
+                <div class="report-card-value" id="statAvgMembers">0</div>
+                <div class="report-card-label">Avg Members / Active Pod</div>
+            </div>
+        </div>
+        <div class="report-details">
+            <div class="report-section">
+                <h3>Members Per Active Pod</h3>
+                <div id="reportMembersPerPod" class="report-table-wrap"></div>
+            </div>
+            <div class="report-section">
+                <h3>Activity Type Breakdown</h3>
+                <div id="reportTypeBreakdown" class="report-table-wrap"></div>
+            </div>
+            <div class="report-section">
+                <h3>Popular Keywords in Titles</h3>
+                <div id="reportKeywords" class="report-keywords-wrap"></div>
+            </div>
+        </div>
+        <div class="report-section report-summary-section">
+            <h3>📝 Summary</h3>
+            <div id="reportSummary" class="report-summary-text">Loading...</div>
         </div>
     </main>
 
