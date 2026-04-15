@@ -64,7 +64,7 @@ const proposalsTiles = document.getElementById("proposals-tiles");
 const proposalsEmpty = document.getElementById("proposals-empty");
 const reviewTiles = document.getElementById("review-tiles");
 const reviewEmpty = document.getElementById("review-empty");
-const adminReviewNavLink = document.querySelector('.nav-link-admin');
+const adminReviewNavLink = document.querySelectorAll('.nav-link-admin');
 
 // ===========================
 // State
@@ -660,7 +660,7 @@ adminLoginSubmitBtn.addEventListener("click", () => {
         document.body.classList.add("admin-mode");
         exitAdminBtn.style.display = "block";
         adminLoginBtn.textContent = "Admin \u2713";
-        if (adminReviewNavLink) adminReviewNavLink.style.display = "inline-block";
+        adminReviewNavLink.forEach(el => el.style.display = "inline-block");
         enableAdminTextBoxes();
         closeModalFn(adminLoginModal);
     } else {
@@ -681,9 +681,10 @@ function exitAdmin() {
     document.body.classList.remove("admin-mode");
     exitAdminBtn.style.display = "none";
     adminLoginBtn.textContent = "Admin Log In";
-    if (adminReviewNavLink) adminReviewNavLink.style.display = "none";
-    // If on admin review page, navigate away
-    if (document.getElementById("page-adminreview").classList.contains("active")) {
+    adminReviewNavLink.forEach(el => el.style.display = "none");
+    // If on admin-only page, navigate away
+    if (document.getElementById("page-adminreview").classList.contains("active") ||
+        document.getElementById("page-reporting").classList.contains("active")) {
         navigateTo("dashboard");
     }
     disableAdminTextBoxes();
@@ -805,8 +806,12 @@ function renderReviewTile(doc) {
     });
     tile.querySelector(".btn-reject").addEventListener("click", async (e) => {
         e.stopPropagation();
-        deletePodId = doc.id;
-        openModal(deleteConfirmModal);
+        if (confirm("Reject this pod? It will be marked as rejected.")) {
+            await podsCollection.doc(doc.id).update({
+                status: "rejected",
+                rejectedAt: new Date().toISOString()
+            });
+        }
     });
     return tile;
 }
@@ -901,3 +906,201 @@ document.getElementById("leaveSubmitBtn").addEventListener("click", async () => 
 
     alert("You are not part of this pod.");
 });
+
+// ===========================
+// Rejected Pods Cache
+// ===========================
+let cachedRejectedPods = {};
+
+podsCollection
+    .where("status", "==", "rejected")
+    .onSnapshot((snapshot) => {
+        cachedRejectedPods = {};
+        snapshot.docs.forEach(doc => { cachedRejectedPods[doc.id] = doc.data(); });
+        updateReporting();
+    });
+
+// Also trigger reporting updates from other listeners
+// (We call updateReporting at the end of each existing listener via a rewrite
+//  — instead we just call it on a slight delay to catch all snapshot updates)
+
+// ===========================
+// Reporting Dashboard
+// ===========================
+const reportTimeFilter = document.getElementById("reportTimeFilter");
+if (reportTimeFilter) {
+    reportTimeFilter.addEventListener("change", () => updateReporting());
+}
+
+function getFilteredPods(podsObj, daysBack) {
+    if (daysBack === "all") return Object.entries(podsObj);
+    const cutoff = Date.now() - (parseInt(daysBack) * 24 * 60 * 60 * 1000);
+    return Object.entries(podsObj).filter(([_, data]) => {
+        const created = data.createdAt?.toMillis ? data.createdAt.toMillis() : (data.createdAt ? new Date(data.createdAt).getTime() : 0);
+        return created >= cutoff;
+    });
+}
+
+function updateReporting() {
+    const filter = reportTimeFilter ? reportTimeFilter.value : "all";
+
+    const activePods = getFilteredPods(cachedActivePods, filter);
+    const proposalPods = getFilteredPods(cachedProposalPods, filter);
+    const pendingPods = getFilteredPods(cachedPendingPods, filter);
+    const rejectedPods = getFilteredPods(cachedRejectedPods, filter);
+
+    // --- Stat cards ---
+    const el = (id) => document.getElementById(id);
+    if (!el("statActivePods")) return; // page not in DOM
+
+    el("statActivePods").textContent = activePods.length;
+    el("statProposedPods").textContent = proposalPods.length;
+    el("statPendingPods").textContent = pendingPods.length;
+    el("statRejectedPods").textContent = rejectedPods.length;
+
+    // Total unique participants across active pods
+    const allParticipants = new Set();
+    let totalMembersInActive = 0;
+    activePods.forEach(([_, data]) => {
+        if (data.members) {
+            data.members.forEach(m => allParticipants.add(m.name));
+            totalMembersInActive += data.members.length;
+        }
+    });
+    // Also count voters in proposals
+    proposalPods.forEach(([_, data]) => {
+        if (data.votes) data.votes.forEach(v => allParticipants.add(v.name));
+    });
+
+    el("statTotalParticipants").textContent = allParticipants.size;
+    el("statAvgMembers").textContent = activePods.length > 0
+        ? (totalMembersInActive / activePods.length).toFixed(1)
+        : "0";
+
+    // --- Members per active pod table ---
+    const membersPerPodEl = el("reportMembersPerPod");
+    if (activePods.length === 0) {
+        membersPerPodEl.innerHTML = '<p class="report-empty">No active pods in this period.</p>';
+    } else {
+        const rows = activePods
+            .sort((a, b) => (b[1].members?.length || 0) - (a[1].members?.length || 0))
+            .map(([_, data]) => `<tr><td>${sanitize(data.activityTitle)}</td><td>${data.members ? data.members.length : 0}</td></tr>`)
+            .join("");
+        membersPerPodEl.innerHTML = `<table class="report-table"><thead><tr><th>Pod</th><th>Members</th></tr></thead><tbody>${rows}</tbody></table>`;
+    }
+
+    // --- Activity type breakdown ---
+    const allPods = [...activePods, ...proposalPods, ...pendingPods, ...rejectedPods];
+    const typeCounts = {};
+    allPods.forEach(([_, data]) => {
+        const t = data.activityType || "Unknown";
+        typeCounts[t] = (typeCounts[t] || 0) + 1;
+    });
+    const typeEl = el("reportTypeBreakdown");
+    if (allPods.length === 0) {
+        typeEl.innerHTML = '<p class="report-empty">No data available.</p>';
+    } else {
+        const typeRows = Object.entries(typeCounts)
+            .sort((a, b) => b[1] - a[1])
+            .map(([type, count]) => {
+                const pct = ((count / allPods.length) * 100).toFixed(0);
+                return `<tr><td>${sanitize(type)}</td><td>${count}</td><td>${pct}%</td></tr>`;
+            })
+            .join("");
+        typeEl.innerHTML = `<table class="report-table"><thead><tr><th>Type</th><th>Count</th><th>%</th></tr></thead><tbody>${typeRows}</tbody></table>`;
+    }
+
+    // --- Popular keywords ---
+    const stopWords = new Set(["the","a","an","and","or","of","to","in","for","at","on","is","it","we","our","this","that","with","by","as","be","are","was","do","from","my"]);
+    const wordCounts = {};
+    allPods.forEach(([_, data]) => {
+        const text = (data.activityTitle || "").toLowerCase();
+        text.split(/\W+/).forEach(word => {
+            if (word.length > 2 && !stopWords.has(word)) {
+                wordCounts[word] = (wordCounts[word] || 0) + 1;
+            }
+        });
+    });
+    const keywordsEl = el("reportKeywords");
+    const topKeywords = Object.entries(wordCounts).sort((a, b) => b[1] - a[1]).slice(0, 12);
+    if (topKeywords.length === 0) {
+        keywordsEl.innerHTML = '<p class="report-empty">No data available.</p>';
+    } else {
+        keywordsEl.innerHTML = topKeywords
+            .map(([word, count]) => `<span class="report-keyword">${sanitize(word)} <strong>(${count})</strong></span>`)
+            .join("");
+    }
+
+    // --- Rules-based summary ---
+    generateSummary(activePods, proposalPods, pendingPods, rejectedPods, typeCounts, topKeywords, allParticipants.size);
+}
+
+function generateSummary(activePods, proposalPods, pendingPods, rejectedPods, typeCounts, topKeywords, uniqueParticipants) {
+    const summaryEl = document.getElementById("reportSummary");
+    if (!summaryEl) return;
+
+    const total = activePods.length + proposalPods.length + pendingPods.length + rejectedPods.length;
+    if (total === 0) {
+        summaryEl.textContent = "No pod data available yet.";
+        return;
+    }
+
+    const parts = [];
+
+    // Overall activity
+    parts.push(`There ${total === 1 ? "has been" : "have been"} <strong>${total}</strong> pod${total !== 1 ? "s" : ""} created in total, with <strong>${activePods.length}</strong> currently active, <strong>${proposalPods.length}</strong> in the proposal stage, <strong>${pendingPods.length}</strong> pending review, and <strong>${rejectedPods.length}</strong> rejected.`);
+
+    // Participation
+    if (uniqueParticipants > 0) {
+        parts.push(`A total of <strong>${uniqueParticipants}</strong> unique team member${uniqueParticipants !== 1 ? "s" : ""} ${uniqueParticipants !== 1 ? "have" : "has"} participated across all pods.`);
+    }
+
+    // Average members
+    if (activePods.length > 0) {
+        let totalMembers = 0;
+        let largestPod = { title: "", count: 0 };
+        activePods.forEach(([_, data]) => {
+            const count = data.members ? data.members.length : 0;
+            totalMembers += count;
+            if (count > largestPod.count) {
+                largestPod = { title: data.activityTitle, count };
+            }
+        });
+        const avg = (totalMembers / activePods.length).toFixed(1);
+        parts.push(`Active pods average <strong>${avg}</strong> members each. The largest active pod is "<strong>${sanitize(largestPod.title)}</strong>" with <strong>${largestPod.count}</strong> member${largestPod.count !== 1 ? "s" : ""}.`);
+    }
+
+    // Most popular type
+    const sortedTypes = Object.entries(typeCounts).sort((a, b) => b[1] - a[1]);
+    if (sortedTypes.length > 0) {
+        const [topType, topCount] = sortedTypes[0];
+        const pct = ((topCount / total) * 100).toFixed(0);
+        parts.push(`The most popular activity format is <strong>${sanitize(topType)}</strong>, accounting for <strong>${pct}%</strong> of all pods.`);
+    }
+
+    // Top keywords
+    if (topKeywords.length > 0) {
+        const top3 = topKeywords.slice(0, 3).map(([w]) => `"<strong>${sanitize(w)}</strong>"`).join(", ");
+        parts.push(`The most common themes in pod titles include ${top3}.`);
+    }
+
+    // Rejection rate
+    if (rejectedPods.length > 0) {
+        const submittedTotal = activePods.length + proposalPods.length + rejectedPods.length;
+        const rejPct = ((rejectedPods.length / submittedTotal) * 100).toFixed(0);
+        parts.push(`The rejection rate is <strong>${rejPct}%</strong> (${rejectedPods.length} out of ${submittedTotal} reviewed).`);
+    }
+
+    summaryEl.innerHTML = parts.join(" ");
+}
+
+// Hook into existing snapshot listeners to trigger reporting updates
+const originalProposalListener = podsCollection.where("status", "==", "proposal");
+const originalActiveListener = podsCollection.where("status", "==", "active");
+const originalPendingListener = podsCollection.where("status", "==", "pending");
+
+// Override: add updateReporting calls to existing snapshot callbacks
+// (These are already running — we just add additional watches)
+podsCollection.where("status", "==", "proposal").onSnapshot(() => updateReporting());
+podsCollection.where("status", "==", "active").onSnapshot(() => updateReporting());
+podsCollection.where("status", "==", "pending").onSnapshot(() => updateReporting());
