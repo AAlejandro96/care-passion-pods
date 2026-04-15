@@ -61,54 +61,67 @@
 
     <!-- Create Pod Modal -->
     <div class="modal-overlay" id="createModal">
-        <div class="modal">
+        <div class="modal modal-wide">
             <div class="modal-header">
                 <h3>Create a Pod</h3>
                 <button class="modal-close" id="closeCreateModal">&times;</button>
             </div>
-            <form id="createPodForm" class="modal-body">
-                <div class="form-group">
-                    <label for="organizerName">1. Work Alias</label>
-                    <input type="text" id="organizerName" placeholder="Enter your work alias" required>
-                </div>
-                <div class="form-group">
-                    <label for="location">2. Where are you located?</label>
-                    <input type="text" id="location" placeholder="e.g. New York, NY" required>
-                </div>
-                <div class="form-group">
-                    <label for="activityTitle">3. What is the title of this activity?</label>
-                    <input type="text" id="activityTitle" placeholder="e.g. Weekend Hiking Group" required>
-                </div>
-                <div class="form-group">
-                    <label for="activityDescription">4. Describe the Activity</label>
-                    <textarea id="activityDescription" rows="4" placeholder="Describe the activity..." required></textarea>
-                </div>
-                <div class="form-group">
-                    <label for="moraleMoney">5. How will the morale money be used?</label>
-                    <textarea id="moraleMoney" rows="3" placeholder="Explain how the morale money will be used..." required></textarea>
-                </div>
-                <div class="form-group">
-                    <label>6. Is this activity In-Person, Hybrid, or Online?</label>
-                    <div class="radio-group">
-                        <label class="radio-label">
-                            <input type="radio" name="activityType" value="In-Person" required>
-                            <span class="radio-custom"></span>
-                            In-Person
-                        </label>
-                        <label class="radio-label">
-                            <input type="radio" name="activityType" value="Hybrid">
-                            <span class="radio-custom"></span>
-                            Hybrid
-                        </label>
-                        <label class="radio-label">
-                            <input type="radio" name="activityType" value="Online">
-                            <span class="radio-custom"></span>
-                            Online
-                        </label>
+            <div class="modal-split">
+                <form id="createPodForm" class="modal-body modal-form-side">
+                    <div class="form-group">
+                        <label for="organizerName">1. Work Alias</label>
+                        <input type="text" id="organizerName" placeholder="Enter your work alias" required>
                     </div>
+                    <div class="form-group">
+                        <label for="location">2. Where are you located?</label>
+                        <input type="text" id="location" placeholder="e.g. New York, NY" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="activityTitle">3. What is the title of this activity?</label>
+                        <input type="text" id="activityTitle" placeholder="e.g. Weekend Hiking Group" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="activityDescription">4. Describe the Activity</label>
+                        <textarea id="activityDescription" rows="4" placeholder="Describe the activity..." required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="moraleMoney">5. How will the morale money be used?</label>
+                        <textarea id="moraleMoney" rows="3" placeholder="Explain how the morale money will be used..." required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>6. Is this activity In-Person, Hybrid, or Online?</label>
+                        <div class="radio-group">
+                            <label class="radio-label">
+                                <input type="radio" name="activityType" value="In-Person" required>
+                                <span class="radio-custom"></span>
+                                In-Person
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="activityType" value="Hybrid">
+                                <span class="radio-custom"></span>
+                                Hybrid
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="activityType" value="Online">
+                                <span class="radio-custom"></span>
+                                Online
+                            </label>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-submit">Submit</button>
+                </form>
+                <div class="modal-info-panel">
+                    <div class="info-panel-icon">🚀</div>
+                    <h4>Thank you for creating a pod!</h4>
+                    <p>Your contribution helps build our community and keeps the Activity Pod initiative thriving. Here's what to expect:</p>
+                    <ul>
+                        <li><strong>Follow morale spending policy</strong> — Make sure your activity is compliant. Pods should not involve purchasing anything dangerous or consist solely of purchasing alcoholic beverages, among other policy guidelines.</li>
+                        <li><strong>Admin review first</strong> — Your pod will be sent to Antonio for approval and will <em>not</em> appear on the Pod Proposals page yet. Expect a response within 24–48 hours. You'll be notified whether your pod was approved or, if rejected, given the reason why.</li>
+                        <li><strong>Voting phase</strong> — Once approved, your pod moves to the Pod Proposals page where coworkers can vote for it. Your pod needs <strong>3 votes</strong> to become active — voting also means they're joining the pod!</li>
+                        <li><strong>Morale budget available only when active</strong> — You cannot proceed with your pod or use morale money until it becomes active and is visible on the main Activity Pods dashboard.</li>
+                    </ul>
                 </div>
-                <button type="submit" class="btn-submit">Submit</button>
-            </form>
+            </div>
         </div>
     </div>
 
