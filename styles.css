@@ -343,6 +343,76 @@ body {
     max-width: 440px;
 }
 
+.modal-wide {
+    max-width: 920px;
+}
+
+.modal-split {
+    display: flex;
+}
+
+.modal-form-side {
+    flex: 1;
+    min-width: 0;
+    border-right: 1px solid var(--gray-light);
+}
+
+.modal-info-panel {
+    width: 320px;
+    min-width: 280px;
+    padding: 24px;
+    background: var(--gray-lightest);
+    border-radius: 0 0 var(--radius) 0;
+    overflow-y: auto;
+}
+
+.modal-info-panel .info-panel-icon {
+    font-size: 2rem;
+    margin-bottom: 12px;
+}
+
+.modal-info-panel h4 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--blue-dark);
+    margin-bottom: 8px;
+}
+
+.modal-info-panel > p {
+    font-size: 0.85rem;
+    color: var(--gray-dark);
+    line-height: 1.5;
+    margin-bottom: 16px;
+}
+
+.modal-info-panel ul {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.modal-info-panel li {
+    font-size: 0.83rem;
+    color: var(--gray-dark);
+    line-height: 1.5;
+    padding-left: 20px;
+    position: relative;
+}
+
+.modal-info-panel li::before {
+    content: "→";
+    position: absolute;
+    left: 0;
+    color: var(--blue-accent);
+    font-weight: 700;
+}
+
+.modal-info-panel li strong {
+    color: var(--gray-darkest);
+}
+
 @keyframes modalIn {
     from {
         opacity: 0;
@@ -852,5 +922,20 @@ body.admin-mode .btn-tile-delete {
     .radio-group {
         flex-direction: column;
         gap: 10px;
+    }
+
+    .modal-split {
+        flex-direction: column;
+    }
+
+    .modal-form-side {
+        border-right: none;
+        border-bottom: 1px solid var(--gray-light);
+    }
+
+    .modal-info-panel {
+        width: 100%;
+        min-width: 0;
+        border-radius: 0 0 var(--radius) var(--radius);
     }
 }
