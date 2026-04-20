@@ -13,6 +13,71 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const podsCollection = db.collection("pods");
+const activityLogCollection = db.collection("activityLog");
+
+// ===========================
+// Activity Log
+// ===========================
+function logActivity(action, userName, podTitle) {
+    activityLogCollection.add({
+        action,
+        userName: userName || "Unknown",
+        podTitle: podTitle || "Unknown",
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    });
+}
+
+function renderActivityLog(entries) {
+    const list = document.getElementById("activityLogList");
+    if (!list) return;
+
+    if (entries.length === 0) {
+        list.innerHTML = '<div class="activity-log-empty">No activity logged yet.</div>';
+        return;
+    }
+
+    const icons = {
+        proposed: "🚀",
+        voted: "🗳️",
+        revoked_vote: "↩️",
+        joined: "➕",
+        left: "👋",
+        approved: "✅",
+        rejected: "❌"
+    };
+
+    const descriptions = {
+        proposed: "proposed",
+        voted: "voted for",
+        revoked_vote: "withdrew vote from",
+        joined: "joined",
+        left: "left",
+        approved: "approved",
+        rejected: "rejected"
+    };
+
+    list.innerHTML = entries.map(entry => {
+        const ts = entry.timestamp?.toDate ? entry.timestamp.toDate() : new Date(entry.timestamp);
+        const dateStr = ts.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+        const timeStr = ts.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+        const icon = icons[entry.action] || "📌";
+        const desc = descriptions[entry.action] || entry.action;
+
+        return `<div class="activity-log-entry">
+            <span class="activity-log-time">${dateStr} at ${timeStr}</span>
+            <span class="activity-log-icon">${icon}</span>
+            <span class="activity-log-user">${sanitize(entry.userName)}</span> ${desc}
+            <span class="activity-log-pod">${sanitize(entry.podTitle)}</span>
+        </div>`;
+    }).join("");
+}
+
+// Real-time listener for activity log
+activityLogCollection.orderBy("timestamp", "desc").onSnapshot((snapshot) => {
+    const entries = [];
+    snapshot.forEach(doc => entries.push(doc.data()));
+    renderActivityLog(entries);
+});
 
 // ===========================
 // DOM Elements
@@ -253,6 +318,7 @@ createPodForm.addEventListener("submit", async (e) => {
     };
 
     await podsCollection.add(pod);
+    logActivity("proposed", fullName, activityTitle);
 
     closeModalFn(createModal);
     openModal(successModal);
@@ -556,6 +622,7 @@ joinSubmitBtn.addEventListener("click", async () => {
                 votes: newVotes,
                 members: firebase.firestore.FieldValue.arrayUnion(...newMembers)
             });
+            logActivity("voted", fullName, podData.activityTitle);
             closeModalFn(joinModal);
             openModal(joinSuccessProposalModal);
         } else {
@@ -563,6 +630,7 @@ joinSubmitBtn.addEventListener("click", async () => {
             await podRef.update({
                 votes: newVotes
             });
+            logActivity("voted", fullName, podData.activityTitle);
             votesRemaining.textContent = (3 - newVotes.length);
             closeModalFn(joinModal);
             openModal(voteSuccessModal);
@@ -576,6 +644,8 @@ joinSubmitBtn.addEventListener("click", async () => {
                 joinedAt: new Date().toISOString()
             })
         });
+        const joinedPodSnap = await podRef.get();
+        logActivity("joined", fullName, joinedPodSnap.data().activityTitle);
         closeModalFn(joinModal);
         openModal(joinSuccessActiveModal);
     }
@@ -803,6 +873,7 @@ function renderReviewTile(doc) {
     tile.querySelector(".btn-approve").addEventListener("click", async (e) => {
         e.stopPropagation();
         await podsCollection.doc(doc.id).update({ status: "proposal" });
+        logActivity("approved", "Admin", data.activityTitle);
     });
     tile.querySelector(".btn-reject").addEventListener("click", async (e) => {
         e.stopPropagation();
@@ -811,6 +882,7 @@ function renderReviewTile(doc) {
                 status: "rejected",
                 rejectedAt: new Date().toISOString()
             });
+            logActivity("rejected", "Admin", data.activityTitle);
         }
     });
     return tile;
@@ -885,6 +957,7 @@ document.getElementById("leaveSubmitBtn").addEventListener("click", async () => 
             await podRef.update({
                 members: firebase.firestore.FieldValue.arrayRemove(memberEntry)
             });
+            logActivity("left", fullName, podData.activityTitle);
             closeModalFn(leaveModal);
             alert("You have left this pod.");
             return;
@@ -898,6 +971,7 @@ document.getElementById("leaveSubmitBtn").addEventListener("click", async () => 
             await podRef.update({
                 votes: firebase.firestore.FieldValue.arrayRemove(voteEntry)
             });
+            logActivity("revoked_vote", fullName, podData.activityTitle);
             closeModalFn(leaveModal);
             alert("Your vote has been withdrawn.");
             return;
