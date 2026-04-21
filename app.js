@@ -1,15 +1,7 @@
 // ===========================
-// Firebase Configuration
+// Firebase Initialization
 // ===========================
-const firebaseConfig = {
-    apiKey: "AIzaSyCX0NmSc40AzeUkHaTXezWVondzVSNDw-A",
-    authDomain: "care-passion-pods.firebaseapp.com",
-    projectId: "care-passion-pods",
-    storageBucket: "care-passion-pods.firebasestorage.app",
-    messagingSenderId: "894486868992",
-    appId: "1:894486868992:web:e4c76be9561e1a094194e5"
-};
-
+// Config loaded from firebase-config.js (excluded from source control)
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const podsCollection = db.collection("pods");
