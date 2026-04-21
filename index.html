@@ -442,6 +442,31 @@
     <!-- Exit Admin View Button (only visible in admin mode) -->
     <button class="btn-exit-admin" id="exitAdminBtn" style="display:none;">Exit Admin View</button>
 
+    <!-- Floating Feedback Button -->
+    <button class="feedback-fab" id="feedbackFab" title="Feedback / Bug Report">
+        <svg class="feedback-fab-icon" viewBox="0 0 20 20" fill="currentColor" width="16" height="16"><path d="M2 5a2 2 0 012-2h12a2 2 0 012 2v7a2 2 0 01-2 2H7l-4 3V5z"/></svg>
+        <span>Feedback</span>
+    </button>
+
+    <!-- Feedback Modal -->
+    <div class="modal-overlay" id="feedbackModal">
+        <div class="modal feedback-modal">
+            <div class="modal-header">
+                <h3>Feedback / Bug Report</h3>
+                <button class="modal-close" id="closeFeedbackModal">&times;</button>
+            </div>
+            <div class="modal-body feedback-modal-body">
+                <iframe
+                    id="feedbackIframe"
+                    src="https://forms.office.com/r/RYUSKzwVhG"
+                    frameborder="0"
+                    allowfullscreen
+                    style="width:100%;height:100%;border:none;">
+                </iframe>
+            </div>
+        </div>
+    </div>
+
     <!-- Firebase SDK (compat mode, loaded via CDN) -->
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>

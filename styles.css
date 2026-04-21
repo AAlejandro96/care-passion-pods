@@ -1306,6 +1306,66 @@ body.admin-mode .btn-tile-delete {
 }
 
 /* ===========================
+   Feedback Floating Button
+   =========================== */
+.feedback-fab {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 150;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 16px;
+    background: var(--bg-card);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 999px;
+    font-family: inherit;
+    font-size: 0.82rem;
+    font-weight: 500;
+    cursor: pointer;
+    box-shadow: var(--shadow);
+    transition: all var(--transition);
+    opacity: 0.85;
+}
+
+.feedback-fab:hover {
+    opacity: 1;
+    border-color: var(--blue-accent);
+    color: var(--blue-accent);
+    box-shadow: var(--shadow-hover);
+}
+
+.feedback-fab-icon {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+}
+
+/* Feedback Modal */
+.feedback-modal {
+    max-width: 640px;
+    height: 80vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.feedback-modal-body {
+    flex: 1;
+    padding: 0;
+    overflow: hidden;
+}
+
+.feedback-modal-body iframe {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: none;
+    border-radius: 0 0 var(--radius) var(--radius);
+}
+
+/* ===========================
    Responsive
    =========================== */
 @media (max-width: 768px) {
@@ -1455,6 +1515,15 @@ body.admin-mode .btn-tile-delete {
     .logo {
         font-size: 1.1rem;
     }
+
+    .feedback-fab {
+        bottom: 16px;
+        right: 16px;
+    }
+
+    .feedback-modal {
+        height: 75vh;
+    }
 }
 
 @media (max-width: 480px) {
@@ -1533,5 +1602,16 @@ body.admin-mode .btn-tile-delete {
 
     .report-section {
         padding: 16px;
+    }
+
+    .feedback-fab {
+        bottom: 12px;
+        right: 12px;
+        padding: 8px 12px;
+        font-size: 0.78rem;
+    }
+
+    .feedback-modal {
+        height: 70vh;
     }
 }

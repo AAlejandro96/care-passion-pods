@@ -1184,3 +1184,17 @@ const originalPendingListener = podsCollection.where("status", "==", "pending");
 podsCollection.where("status", "==", "proposal").onSnapshot(() => updateReporting());
 podsCollection.where("status", "==", "active").onSnapshot(() => updateReporting());
 podsCollection.where("status", "==", "pending").onSnapshot(() => updateReporting());
+
+// ===========================
+// Feedback / Bug Report Button
+// ===========================
+(function () {
+    const feedbackFab = document.getElementById("feedbackFab");
+    const feedbackModal = document.getElementById("feedbackModal");
+    const closeFeedbackModal = document.getElementById("closeFeedbackModal");
+
+    if (feedbackFab && feedbackModal) {
+        feedbackFab.addEventListener("click", () => openModal(feedbackModal));
+        closeFeedbackModal.addEventListener("click", () => closeModalFn(feedbackModal));
+    }
+})();
