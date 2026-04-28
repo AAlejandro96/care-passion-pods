@@ -363,6 +363,9 @@ function renderProposalTile(doc) {
     const checks = Array.from({ length: 3 }, (_, i) =>
         `<span class="vote-check ${i < voteCount ? 'filled' : ''}">✓</span>`
     ).join("");
+    const voterNames = data.votes && data.votes.length > 0
+        ? data.votes.map(v => sanitize(v.name)).join(", ")
+        : "No votes yet";
     const tile = document.createElement("div");
     tile.className = "tile";
     tile.innerHTML = `
@@ -375,6 +378,7 @@ function renderProposalTile(doc) {
                 <span class="tile-badge tile-type">${sanitize(data.activityType)}</span>
             </div>
             <div class="vote-checks">${checks}</div>
+            <div class="tile-voters">🗳️ ${voterNames}</div>
         </div>
     `;
     tile.querySelector(".btn-tile-delete").addEventListener("click", (e) => {

@@ -822,6 +822,13 @@ body {
     color: var(--white);
 }
 
+.tile-voters {
+    margin-top: 8px;
+    font-size: 0.82rem;
+    color: var(--text-secondary, #999);
+    line-height: 1.4;
+}
+
 /* ===========================
    Admin Mode
    =========================== */
