@@ -1271,6 +1271,93 @@ body.admin-mode .btn-tile-delete {
     line-height: 1.7;
 }
 
+.report-participation-section {
+    margin-top: 8px;
+    background: var(--report-card-bg);
+    border: 1px solid var(--border-color);
+}
+
+.participation-counts {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 14px;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+
+.participation-counts span {
+    padding: 4px 12px;
+    border-radius: 12px;
+    background: var(--badge-bg);
+    color: var(--badge-color);
+    font-size: 0.82rem;
+}
+
+.participation-tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: 14px;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.participation-tab {
+    padding: 8px 20px;
+    background: none;
+    border: none;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    transition: all var(--transition);
+}
+
+.participation-tab.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+}
+
+.participation-tab:hover {
+    color: var(--text-primary);
+}
+
+.participation-list {
+    max-height: 320px;
+    overflow-y: auto;
+}
+
+.participation-list table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+}
+
+.participation-list th {
+    text-align: left;
+    padding: 8px 10px;
+    border-bottom: 2px solid var(--border-color);
+    color: var(--text-muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.04em;
+    position: sticky;
+    top: 0;
+    background: var(--report-card-bg);
+}
+
+.participation-list td {
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-secondary);
+}
+
+.participation-list tr:last-child td {
+    border-bottom: none;
+}
+
 /* ===========================
    About Section
    =========================== */

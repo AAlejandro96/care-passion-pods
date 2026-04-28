@@ -1129,6 +1129,9 @@ function updateReporting() {
 
     // --- Rules-based summary ---
     generateSummary(activePods, proposalPods, pendingPods, rejectedPods, typeCounts, topKeywords, allParticipants.size);
+
+    // --- Team Participation ---
+    updateParticipationPanel(activePods, proposalPods, pendingPods);
 }
 
 function generateSummary(activePods, proposalPods, pendingPods, rejectedPods, typeCounts, topKeywords, uniqueParticipants) {
@@ -1189,6 +1192,66 @@ function generateSummary(activePods, proposalPods, pendingPods, rejectedPods, ty
 
     summaryEl.innerHTML = parts.join(" ");
 }
+
+// ===========================
+// Team Participation Panel
+// ===========================
+function updateParticipationPanel(activePods, proposalPods, pendingPods) {
+    const countsEl = document.getElementById("participationCounts");
+    const activeListEl = document.getElementById("participationListActive");
+    const inactiveListEl = document.getElementById("participationListInactive");
+    if (!countsEl || !activeListEl || !inactiveListEl) return;
+
+    // Collect all active aliases (anyone who created, voted for, or joined a pod)
+    const activeAliases = new Set();
+    const allPodEntries = [...activePods, ...proposalPods, ...pendingPods];
+    allPodEntries.forEach(([_, data]) => {
+        // Organizer/members
+        if (data.members) {
+            data.members.forEach(m => activeAliases.add(m.name));
+        }
+        // Voters
+        if (data.votes) {
+            data.votes.forEach(v => activeAliases.add(v.name));
+        }
+        // Organizer name (in case they aren't in members yet, e.g. pending)
+        if (data.organizerName) {
+            activeAliases.add(data.organizerName);
+        }
+    });
+
+    // Build full alias list from aliasMap (uppercase alias -> fullName)
+    // Create entries sorted by full name
+    const allEntries = Object.entries(aliasMap).map(([aliasUpper, fullName]) => ({
+        alias: aliasUpper,
+        fullName
+    }));
+
+    const activeList = allEntries.filter(e => activeAliases.has(e.fullName)).sort((a, b) => a.fullName.localeCompare(b.fullName));
+    const inactiveList = allEntries.filter(e => !activeAliases.has(e.fullName)).sort((a, b) => a.fullName.localeCompare(b.fullName));
+
+    countsEl.innerHTML = `<span>✅ ${activeList.length} Active</span> <span>⬜ ${inactiveList.length} Inactive</span>`;
+
+    function renderTable(list) {
+        if (list.length === 0) return '<p class="report-empty">No users in this category.</p>';
+        const rows = list.map(e => `<tr><td>${sanitize(e.alias)}</td><td>${sanitize(e.fullName)}</td></tr>`).join("");
+        return `<table><thead><tr><th>Alias</th><th>Full Name</th></tr></thead><tbody>${rows}</tbody></table>`;
+    }
+
+    activeListEl.innerHTML = renderTable(activeList);
+    inactiveListEl.innerHTML = renderTable(inactiveList);
+}
+
+// Participation tab switching
+document.querySelectorAll(".participation-tab").forEach(tab => {
+    tab.addEventListener("click", () => {
+        document.querySelectorAll(".participation-tab").forEach(t => t.classList.remove("active"));
+        tab.classList.add("active");
+        const target = tab.dataset.tab;
+        document.getElementById("participationListActive").style.display = target === "active" ? "" : "none";
+        document.getElementById("participationListInactive").style.display = target === "inactive" ? "" : "none";
+    });
+});
 
 // Hook into existing snapshot listeners to trigger reporting updates
 const originalProposalListener = podsCollection.where("status", "==", "proposal");
