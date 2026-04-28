@@ -601,6 +601,8 @@ joinSubmitBtn.addEventListener("click", async () => {
     if (existingPod) {
         if (existingPod.podId === currentPodId) {
             alert("You are already in this pod.");
+        } else if (existingPod.role === "Voter") {
+            alert(`You already voted for the pod "${existingPod.data.activityTitle}". You must withdraw your vote from that pod before voting for or joining another.`);
         } else {
             alert(`You are already in the pod "${existingPod.data.activityTitle}". You must leave that pod before joining another.`);
         }
