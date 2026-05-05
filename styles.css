@@ -1358,6 +1358,71 @@ body.admin-mode .btn-tile-delete {
     border-bottom: none;
 }
 
+/* Traffic Panel */
+.report-traffic-section {
+    margin-top: 8px;
+    background: var(--report-card-bg);
+    border: 1px solid var(--border-color);
+}
+
+.traffic-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.traffic-controls select {
+    padding: 6px 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-color);
+    background: var(--bg-card);
+    color: var(--text-primary);
+    font-size: 0.85rem;
+}
+
+.traffic-chart-wrapper {
+    position: relative;
+    width: 100%;
+    height: 260px;
+    margin-bottom: 20px;
+}
+
+.traffic-chart-wrapper canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.traffic-timeline {
+    max-height: 200px;
+    overflow-y: auto;
+    font-size: 0.82rem;
+}
+
+.traffic-timeline-entry {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 10px;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-secondary);
+}
+
+.traffic-timeline-entry:last-child {
+    border-bottom: none;
+}
+
+.traffic-timeline-date {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.traffic-timeline-count {
+    font-weight: 700;
+    color: var(--accent);
+}
+
 /* ===========================
    About Section
    =========================== */

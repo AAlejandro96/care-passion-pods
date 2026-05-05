@@ -378,6 +378,22 @@
                     <div class="participation-list" id="participationListActive"></div>
                     <div class="participation-list" id="participationListInactive" style="display:none;"></div>
                 </div>
+                <div class="report-section report-traffic-section">
+                    <h3>📈 Site Traffic</h3>
+                    <div class="traffic-controls">
+                        <label for="trafficRangeFilter">Show:</label>
+                        <select id="trafficRangeFilter">
+                            <option value="7" selected>Last 7 Days</option>
+                            <option value="14">Last 14 Days</option>
+                            <option value="30">Last 30 Days</option>
+                            <option value="90">Last 90 Days</option>
+                        </select>
+                    </div>
+                    <div class="traffic-chart-wrapper">
+                        <canvas id="trafficChart"></canvas>
+                    </div>
+                    <div class="traffic-timeline" id="trafficTimeline"></div>
+                </div>
             </div>
         </div>
     </main>
@@ -482,6 +498,8 @@
     <!-- Firebase SDK (compat mode, loaded via CDN) -->
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
     <script src="space.js"></script>
     <script src="app.js"></script>
 </body>

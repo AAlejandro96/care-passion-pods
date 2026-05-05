@@ -14,6 +14,16 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const podsCollection = db.collection("pods");
 const activityLogCollection = db.collection("activityLog");
+const pageViewsCollection = db.collection("pageViews");
+
+// Log a page view on each load
+(function logPageView() {
+    const today = new Date().toISOString().split("T")[0]; // "YYYY-MM-DD"
+    pageViewsCollection.add({
+        date: today,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    }).catch(err => console.warn("Page view log failed:", err));
+})();
 
 // ===========================
 // Activity Log
@@ -1252,6 +1262,105 @@ document.querySelectorAll(".participation-tab").forEach(tab => {
         document.getElementById("participationListInactive").style.display = target === "inactive" ? "" : "none";
     });
 });
+
+// ===========================
+// Site Traffic Chart
+// ===========================
+let trafficChart = null;
+
+function renderTrafficChart(daysBack) {
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - daysBack);
+    cutoff.setHours(0, 0, 0, 0);
+
+    pageViewsCollection
+        .where("date", ">=", cutoff.toISOString().split("T")[0])
+        .get()
+        .then(snapshot => {
+            // Aggregate by date
+            const counts = {};
+            snapshot.forEach(doc => {
+                const d = doc.data().date;
+                counts[d] = (counts[d] || 0) + 1;
+            });
+
+            // Build array for each day in range
+            const labels = [];
+            const data = [];
+            for (let i = daysBack - 1; i >= 0; i--) {
+                const d = new Date();
+                d.setDate(d.getDate() - i);
+                const key = d.toISOString().split("T")[0];
+                labels.push(d.toLocaleDateString("en-US", { month: "short", day: "numeric" }));
+                data.push(counts[key] || 0);
+            }
+
+            // Render chart
+            const canvas = document.getElementById("trafficChart");
+            if (!canvas) return;
+            const ctx = canvas.getContext("2d");
+
+            if (trafficChart) trafficChart.destroy();
+
+            const accentColor = getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "#6366f1";
+
+            trafficChart = new Chart(ctx, {
+                type: "line",
+                data: {
+                    labels,
+                    datasets: [{
+                        label: "Page Views",
+                        data,
+                        borderColor: accentColor,
+                        backgroundColor: accentColor + "22",
+                        fill: true,
+                        tension: 0.3,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { precision: 0 }
+                        }
+                    }
+                }
+            });
+
+            // Render timeline below chart
+            const timelineEl = document.getElementById("trafficTimeline");
+            if (timelineEl) {
+                const entries = labels.map((lbl, idx) => ({
+                    label: lbl,
+                    count: data[idx]
+                })).reverse();
+                timelineEl.innerHTML = entries.map(e =>
+                    `<div class="traffic-timeline-entry">
+                        <span class="traffic-timeline-date">${e.label}</span>
+                        <span class="traffic-timeline-count">${e.count} view${e.count !== 1 ? "s" : ""}</span>
+                    </div>`
+                ).join("");
+            }
+        })
+        .catch(err => console.warn("Traffic chart error:", err));
+}
+
+// Traffic range filter
+const trafficRangeFilter = document.getElementById("trafficRangeFilter");
+if (trafficRangeFilter) {
+    trafficRangeFilter.addEventListener("change", () => {
+        renderTrafficChart(parseInt(trafficRangeFilter.value));
+    });
+    // Initial render
+    renderTrafficChart(parseInt(trafficRangeFilter.value));
+}
 
 // Hook into existing snapshot listeners to trigger reporting updates
 const originalProposalListener = podsCollection.where("status", "==", "proposal");
