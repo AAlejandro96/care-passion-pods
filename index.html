@@ -48,6 +48,16 @@
                 <p>There are no pods currently active</p>
             </div>
         </div>
+        <div class="past-pods-section">
+            <h3 class="past-pods-header">📁 Past Pods</h3>
+            <p class="past-pods-description">These pods have already taken place and are no longer active.</p>
+            <div class="tiles-container" id="past-pods-tiles">
+                <div class="empty-state" id="past-pods-empty">
+                    <div class="empty-icon">🕐</div>
+                    <p>No past pods yet</p>
+                </div>
+            </div>
+        </div>
     </main>
 
     <!-- Pod Proposals Page -->
@@ -275,6 +285,47 @@
                 </div>
                 <button class="btn-submit" id="dateTimeSubmitBtn">Save</button>
             </div>
+        </div>
+    </div>
+
+    <!-- Edit Pod Modal (Admin) -->
+    <div class="modal-overlay" id="editPodModal">
+        <div class="modal modal-wide">
+            <div class="modal-header">
+                <h3>Edit Pod</h3>
+                <button class="modal-close" id="closeEditPodModal">&times;</button>
+            </div>
+            <form id="editPodForm" class="modal-body">
+                <div class="form-group">
+                    <label for="editPodTitle">Activity Title</label>
+                    <input type="text" id="editPodTitle" required>
+                </div>
+                <div class="form-group">
+                    <label for="editPodLocation">Location</label>
+                    <input type="text" id="editPodLocation" required>
+                </div>
+                <div class="form-group">
+                    <label for="editPodDescription">Description</label>
+                    <textarea id="editPodDescription" rows="4" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="editPodMoraleMoney">How will the morale money be used?</label>
+                    <textarea id="editPodMoraleMoney" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="editPodType">Activity Type</label>
+                    <select id="editPodType">
+                        <option value="In-Person">In-Person</option>
+                        <option value="Hybrid">Hybrid</option>
+                        <option value="Online">Online</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="editPodDate">Date & Time (leave blank for TBD)</label>
+                    <input type="text" id="editPodDate" placeholder="e.g. May 10, 2026 at 3:00 PM EST">
+                </div>
+                <button type="submit" class="btn-submit">Save Changes</button>
+            </form>
         </div>
     </div>
 

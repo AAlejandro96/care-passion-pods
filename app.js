@@ -401,6 +401,7 @@ function renderActiveTile(doc) {
     const catIdx = getCatIndex(doc.id);
     const memberCount = data.members ? data.members.length : 0;
     const dateDisplay = data.dateTime ? sanitize(data.dateTime) : "Date: TBD";
+    const isLocked = data.locked === true;
     const tile = document.createElement("div");
     tile.className = "tile";
     tile.innerHTML = `
@@ -413,6 +414,7 @@ function renderActiveTile(doc) {
                 <span class="tile-badge">👥 ${memberCount} member${memberCount !== 1 ? "s" : ""}</span>
                 <span class="tile-badge">📅 ${dateDisplay}</span>
                 <span class="tile-badge tile-type">${sanitize(data.activityType)}</span>
+                ${isLocked ? '<span class="tile-badge tile-locked">🔒 Locked</span>' : ''}
             </div>
         </div>
     `;
@@ -477,6 +479,9 @@ podsCollection
                 dashboardTiles.appendChild(renderActiveTile(doc));
             });
         }
+
+        // Auto-move past pods
+        checkAndMovePastPods();
     });
 
 // ===========================
@@ -502,7 +507,7 @@ function openPodDetail(podId, data, status) {
     }
 
     let membersHTML = "";
-    if (status === "active" && data.members && data.members.length > 0) {
+    if ((status === "active" || status === "past") && data.members && data.members.length > 0) {
         membersHTML = `
             <div class="detail-section">
                 <div class="detail-label">Pod Members</div>
@@ -516,15 +521,21 @@ function openPodDetail(podId, data, status) {
     }
 
     let dateSection = "";
-    if (status === "active") {
+    if (status === "active" || status === "past") {
         const dateDisplay = data.dateTime || "TBD";
         dateSection = `
             <div class="detail-section">
                 <div class="detail-label">Date & Time of Activity</div>
                 <div class="detail-value">${sanitize(dateDisplay)}</div>
-                <button class="btn-date" id="setDateBtn">Set / Update Date & Time</button>
+                ${status === "active" ? '<button class="btn-date" id="setDateBtn">Set / Update Date & Time</button>' : ''}
             </div>
         `;
+    }
+
+    const isLocked = data.locked === true;
+    let lockedBanner = "";
+    if (isLocked || status === "past") {
+        lockedBanner = `<div class="pod-locked-banner">🔒 Pod is at max capacity!</div>`;
     }
 
     detailBody.innerHTML = `
@@ -551,42 +562,120 @@ function openPodDetail(podId, data, status) {
         ${dateSection}
         ${votersHTML}
         ${membersHTML}
+        ${lockedBanner}
     `;
 
-    detailFooter.innerHTML = `
-        <button class="btn-exit" id="detailExitBtn">Exit</button>
-        <button class="btn-leave" id="detailLeaveBtn">${status === "proposal" ? "Withdraw Vote" : "Leave Pod"}</button>
-        <button class="btn-join" id="detailJoinBtn">${status === "proposal" ? "Vote" : "Join"}</button>
-    `;
+    // Build footer based on locked/status/admin
+    let footerHTML = `<button class="btn-exit" id="detailExitBtn">Exit</button>`;
+
+    if (!isLocked && status !== "past") {
+        footerHTML += `<button class="btn-leave" id="detailLeaveBtn">${status === "proposal" ? "Withdraw Vote" : "Leave Pod"}</button>`;
+        footerHTML += `<button class="btn-join" id="detailJoinBtn">${status === "proposal" ? "Vote" : "Join"}</button>`;
+    }
+
+    // Admin buttons
+    if (isAdmin) {
+        if (status === "proposal") {
+            footerHTML += `<button class="btn-admin-action" id="adminActivateBtn">⚡ Activate</button>`;
+        }
+        if (status === "active") {
+            footerHTML += `<button class="btn-admin-action" id="adminLockBtn">${isLocked ? "🔓 Unlock" : "🔒 Lock"}</button>`;
+            footerHTML += `<button class="btn-admin-action" id="adminMarkPastBtn">📁 Mark as Past</button>`;
+        }
+        if (status === "past") {
+            footerHTML += `<button class="btn-admin-action" id="adminReactivateBtn">🔄 Reactivate</button>`;
+        }
+        footerHTML += `<button class="btn-admin-action" id="adminEditBtn">✏️ Edit</button>`;
+    }
+
+    detailFooter.innerHTML = footerHTML;
 
     // Wire up footer buttons
     document.getElementById("detailExitBtn").addEventListener("click", () => {
         closeModalFn(podDetailModal);
     });
 
-    document.getElementById("detailLeaveBtn").addEventListener("click", () => {
-        closeModalFn(podDetailModal);
-        const leaveNameInput = document.getElementById("leaveName");
-        leaveNameInput.value = "";
-        const leaveModalTitle = document.getElementById("leaveModalTitle");
-        leaveModalTitle.textContent = status === "proposal" ? "Withdraw Vote" : "Leave Pod";
-        const leaveSubmitBtn = document.getElementById("leaveSubmitBtn");
-        leaveSubmitBtn.textContent = status === "proposal" ? "Withdraw" : "Leave";
-        openModal(document.getElementById("leaveModal"));
-    });
+    const leaveBtn = document.getElementById("detailLeaveBtn");
+    if (leaveBtn) {
+        leaveBtn.addEventListener("click", () => {
+            closeModalFn(podDetailModal);
+            const leaveNameInput = document.getElementById("leaveName");
+            leaveNameInput.value = "";
+            const leaveModalTitle = document.getElementById("leaveModalTitle");
+            leaveModalTitle.textContent = status === "proposal" ? "Withdraw Vote" : "Leave Pod";
+            const leaveSubmitBtn = document.getElementById("leaveSubmitBtn");
+            leaveSubmitBtn.textContent = status === "proposal" ? "Withdraw" : "Leave";
+            openModal(document.getElementById("leaveModal"));
+        });
+    }
 
-    document.getElementById("detailJoinBtn").addEventListener("click", () => {
-        closeModalFn(podDetailModal);
-        joinNameInput.value = "";
-        if (status === "proposal") {
-            joinModalTitle.textContent = "Vote for this Pod";
-            joinSubmitBtn.textContent = "Vote";
-        } else {
-            joinModalTitle.textContent = "Join this Pod";
-            joinSubmitBtn.textContent = "Join";
-        }
-        openModal(joinModal);
-    });
+    const joinBtn = document.getElementById("detailJoinBtn");
+    if (joinBtn) {
+        joinBtn.addEventListener("click", () => {
+            closeModalFn(podDetailModal);
+            joinNameInput.value = "";
+            if (status === "proposal") {
+                joinModalTitle.textContent = "Vote for this Pod";
+                joinSubmitBtn.textContent = "Vote";
+            } else {
+                joinModalTitle.textContent = "Join this Pod";
+                joinSubmitBtn.textContent = "Join";
+            }
+            openModal(joinModal);
+        });
+    }
+
+    // Admin: Activate proposal immediately
+    const activateBtn = document.getElementById("adminActivateBtn");
+    if (activateBtn) {
+        activateBtn.addEventListener("click", async () => {
+            const podRef = podsCollection.doc(podId);
+            const voters = data.votes || [];
+            const newMembers = voters.map(v => ({ name: v.name, role: "Member", joinedAt: v.votedAt }));
+            await podRef.update({
+                status: "active",
+                members: firebase.firestore.FieldValue.arrayUnion(...(newMembers.length > 0 ? newMembers : []))
+            });
+            logActivity("approved", "Admin", data.activityTitle);
+            closeModalFn(podDetailModal);
+        });
+    }
+
+    // Admin: Lock/Unlock pod
+    const lockBtn = document.getElementById("adminLockBtn");
+    if (lockBtn) {
+        lockBtn.addEventListener("click", async () => {
+            await podsCollection.doc(podId).update({ locked: !isLocked });
+            closeModalFn(podDetailModal);
+        });
+    }
+
+    // Admin: Mark as past
+    const markPastBtn = document.getElementById("adminMarkPastBtn");
+    if (markPastBtn) {
+        markPastBtn.addEventListener("click", async () => {
+            await podsCollection.doc(podId).update({ status: "past", locked: true });
+            closeModalFn(podDetailModal);
+        });
+    }
+
+    // Admin: Reactivate past pod
+    const reactivateBtn = document.getElementById("adminReactivateBtn");
+    if (reactivateBtn) {
+        reactivateBtn.addEventListener("click", async () => {
+            await podsCollection.doc(podId).update({ status: "active", locked: false });
+            closeModalFn(podDetailModal);
+        });
+    }
+
+    // Admin: Edit pod
+    const editBtn = document.getElementById("adminEditBtn");
+    if (editBtn) {
+        editBtn.addEventListener("click", () => {
+            closeModalFn(podDetailModal);
+            openEditPodModal(podId, data);
+        });
+    }
 
     // Wire up date button if active
     if (status === "active") {
@@ -634,6 +723,14 @@ joinSubmitBtn.addEventListener("click", async () => {
     }
 
     const podRef = podsCollection.doc(currentPodId);
+
+    // Check if pod is locked
+    const checkSnap = await podRef.get();
+    if (checkSnap.exists && checkSnap.data().locked === true) {
+        alert("This pod is locked and not accepting new members.");
+        closeModalFn(joinModal);
+        return;
+    }
 
     if (currentPodStatus === "proposal") {
         // Add vote to proposal
@@ -739,6 +836,118 @@ dateTimeSubmitBtn.addEventListener("click", async () => {
 
     closeModalFn(dateTimeModal);
 });
+
+// ===========================
+// Edit Pod (Admin)
+// ===========================
+const editPodModal = document.getElementById("editPodModal");
+const closeEditPodModal = document.getElementById("closeEditPodModal");
+const editPodForm = document.getElementById("editPodForm");
+let editingPodId = null;
+
+closeEditPodModal.addEventListener("click", () => closeModalFn(editPodModal));
+
+function openEditPodModal(podId, data) {
+    editingPodId = podId;
+    document.getElementById("editPodTitle").value = data.activityTitle || "";
+    document.getElementById("editPodLocation").value = data.location || "";
+    document.getElementById("editPodDescription").value = data.activityDescription || "";
+    document.getElementById("editPodMoraleMoney").value = data.moraleMoney || "";
+    document.getElementById("editPodType").value = data.activityType || "In-Person";
+    document.getElementById("editPodDate").value = data.dateTime || "";
+    openModal(editPodModal);
+}
+
+editPodForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (!editingPodId) return;
+    await podsCollection.doc(editingPodId).update({
+        activityTitle: document.getElementById("editPodTitle").value.trim(),
+        location: document.getElementById("editPodLocation").value.trim(),
+        activityDescription: document.getElementById("editPodDescription").value.trim(),
+        moraleMoney: document.getElementById("editPodMoraleMoney").value.trim(),
+        activityType: document.getElementById("editPodType").value,
+        dateTime: document.getElementById("editPodDate").value.trim() || null
+    });
+    editingPodId = null;
+    closeModalFn(editPodModal);
+});
+
+// ===========================
+// Past Pods (auto-move + render)
+// ===========================
+let cachedPastPods = {};
+const pastPodsTiles = document.getElementById("past-pods-tiles");
+const pastPodsEmpty = document.getElementById("past-pods-empty");
+
+// Check active pods for past dates and auto-move them
+function checkAndMovePastPods() {
+    const now = new Date();
+    Object.entries(cachedActivePods).forEach(([podId, data]) => {
+        if (data.dateTime && data.dateTime !== "TBD") {
+            // Parse date like "May 10, 2026 at 3:00 PM EST"
+            const dateStr = data.dateTime.replace(/ at /, " ").replace(/ (EST|CST|MST|PST|AST|HST|UTC|GMT|CET|IST|JST|AEST)$/, "");
+            const podDate = new Date(dateStr);
+            if (!isNaN(podDate.getTime()) && podDate < now) {
+                podsCollection.doc(podId).update({ status: "past", locked: true });
+            }
+        }
+    });
+}
+
+// Run on each active pods snapshot
+function renderPastTile(doc) {
+    const data = doc.data();
+    const catIdx = getCatIndex(doc.id);
+    const memberCount = data.members ? data.members.length : 0;
+    const dateDisplay = data.dateTime ? sanitize(data.dateTime) : "Date: TBD";
+    const tile = document.createElement("div");
+    tile.className = "tile tile-past";
+    tile.innerHTML = `
+        <button class="btn-tile-delete" data-id="${doc.id}" title="Delete pod">&times;</button>
+        <div class="tile-avatar cat-${catIdx}"></div>
+        <div class="tile-content">
+            <div class="tile-title">${sanitize(data.activityTitle)}</div>
+            <div class="tile-organizer">by ${sanitize(data.organizerName)}</div>
+            <div class="tile-meta">
+                <span class="tile-badge">👥 ${memberCount} member${memberCount !== 1 ? "s" : ""}</span>
+                <span class="tile-badge">📅 ${dateDisplay}</span>
+                <span class="tile-badge tile-type">${sanitize(data.activityType)}</span>
+                <span class="tile-badge tile-locked">🔒 Completed</span>
+            </div>
+        </div>
+    `;
+    tile.querySelector(".btn-tile-delete").addEventListener("click", (e) => {
+        e.stopPropagation();
+        deletePodId = doc.id;
+        openModal(deleteConfirmModal);
+    });
+    tile.addEventListener("click", () => openPodDetail(doc.id, data, "past"));
+    return tile;
+}
+
+podsCollection
+    .where("status", "==", "past")
+    .onSnapshot((snapshot) => {
+        cachedPastPods = {};
+        snapshot.docs.forEach(doc => { cachedPastPods[doc.id] = doc.data(); });
+
+        pastPodsTiles.querySelectorAll(".tile").forEach(t => t.remove());
+
+        if (snapshot.empty) {
+            pastPodsEmpty.style.display = "block";
+        } else {
+            pastPodsEmpty.style.display = "none";
+            const docs = snapshot.docs.sort((a, b) => {
+                const aTime = a.data().createdAt?.toMillis() || 0;
+                const bTime = b.data().createdAt?.toMillis() || 0;
+                return bTime - aTime;
+            });
+            docs.forEach((doc) => {
+                pastPodsTiles.appendChild(renderPastTile(doc));
+            });
+        }
+    });
 
 // ===========================
 // Admin Login / Logout

@@ -829,6 +829,66 @@ body {
     line-height: 1.4;
 }
 
+/* Past Pods Section */
+.past-pods-section {
+    margin-top: 48px;
+    padding-top: 24px;
+    border-top: 2px solid var(--border-color);
+}
+
+.past-pods-header {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+
+.past-pods-description {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+}
+
+.tile-past {
+    opacity: 0.7;
+}
+
+.tile-locked {
+    background: #f59e0b22;
+    color: #d97706;
+    font-weight: 600;
+}
+
+/* Pod Locked Banner */
+.pod-locked-banner {
+    margin-top: 16px;
+    padding: 12px 16px;
+    background: #fef3c7;
+    border: 1px solid #f59e0b;
+    border-radius: var(--radius-sm);
+    color: #92400e;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+/* Admin Action Buttons */
+.btn-admin-action {
+    padding: 8px 14px;
+    border: none;
+    border-radius: var(--radius-sm);
+    background: var(--accent);
+    color: var(--white);
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity var(--transition);
+}
+
+.btn-admin-action:hover {
+    opacity: 0.85;
+}
+
 /* ===========================
    Admin Mode
    =========================== */
