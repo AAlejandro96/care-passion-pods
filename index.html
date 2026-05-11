@@ -36,6 +36,12 @@
         </div>
     </header>
 
+    <!-- Announcement Banner -->
+    <div class="announcement-banner" id="announcementBanner" style="display:none;">
+        <span class="announcement-text" id="announcementText"></span>
+        <button class="announcement-dismiss" id="announcementDismiss" title="Dismiss">&times;</button>
+    </div>
+
     <!-- Dashboard Page -->
     <main class="page active" id="page-dashboard">
         <div class="page-header">
@@ -444,6 +450,18 @@
                         <canvas id="trafficChart"></canvas>
                     </div>
                     <div class="traffic-timeline" id="trafficTimeline"></div>
+                </div>
+                <div class="report-section report-banner-section">
+                    <h3>📢 Announcement Banner</h3>
+                    <div class="form-group">
+                        <label for="bannerMessage">Banner Message</label>
+                        <textarea id="bannerMessage" rows="2" placeholder="Type your announcement here..."></textarea>
+                    </div>
+                    <div class="banner-controls">
+                        <button class="btn-submit" id="bannerSaveBtn">Save</button>
+                        <button class="btn-admin-action" id="bannerToggleBtn">Enable</button>
+                    </div>
+                    <p class="banner-status" id="bannerStatus">Status: Loading...</p>
                 </div>
             </div>
         </div>

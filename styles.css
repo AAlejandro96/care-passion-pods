@@ -829,6 +829,57 @@ body {
     line-height: 1.4;
 }
 
+/* Announcement Banner */
+.announcement-banner {
+    background: #2563eb;
+    color: #fff;
+    padding: 12px 48px 12px 20px;
+    font-size: 0.92rem;
+    font-weight: 500;
+    text-align: center;
+    position: relative;
+    z-index: 90;
+    line-height: 1.5;
+}
+
+.announcement-dismiss {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 1.3rem;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity var(--transition);
+}
+
+.announcement-dismiss:hover {
+    opacity: 1;
+}
+
+/* Banner Admin Controls */
+.report-banner-section {
+    margin-top: 8px;
+    background: var(--report-card-bg);
+    border: 1px solid var(--border-color);
+}
+
+.banner-controls {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.banner-status {
+    margin-top: 10px;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
 /* Past Pods Section */
 .past-pods-section {
     margin-top: 48px;

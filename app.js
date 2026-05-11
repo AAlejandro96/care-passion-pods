@@ -1571,6 +1571,77 @@ if (trafficRangeFilter) {
     renderTrafficChart(parseInt(trafficRangeFilter.value));
 }
 
+// ===========================
+// Announcement Banner
+// ===========================
+const bannerEl = document.getElementById("announcementBanner");
+const bannerTextEl = document.getElementById("announcementText");
+const bannerDismissBtn = document.getElementById("announcementDismiss");
+const bannerMessageInput = document.getElementById("bannerMessage");
+const bannerSaveBtn = document.getElementById("bannerSaveBtn");
+const bannerToggleBtn = document.getElementById("bannerToggleBtn");
+const bannerStatusEl = document.getElementById("bannerStatus");
+const bannerDoc = db.collection("settings").doc("announcement");
+
+let bannerDismissed = false;
+
+// Real-time listener for banner state
+bannerDoc.onSnapshot((doc) => {
+    if (doc.exists) {
+        const data = doc.data();
+        const enabled = data.enabled === true;
+        const message = data.message || "";
+
+        // Update admin controls
+        if (bannerMessageInput) bannerMessageInput.value = message;
+        if (bannerToggleBtn) bannerToggleBtn.textContent = enabled ? "Disable" : "Enable";
+        if (bannerStatusEl) bannerStatusEl.textContent = enabled ? "Status: Enabled" : "Status: Disabled";
+
+        // Show/hide banner for all users
+        if (enabled && message && !bannerDismissed) {
+            bannerTextEl.textContent = message;
+            bannerEl.style.display = "";
+        } else {
+            bannerEl.style.display = "none";
+        }
+    } else {
+        // No doc yet
+        if (bannerToggleBtn) bannerToggleBtn.textContent = "Enable";
+        if (bannerStatusEl) bannerStatusEl.textContent = "Status: No announcement set";
+        bannerEl.style.display = "none";
+    }
+});
+
+// Dismiss banner (hides until next visit / page reload)
+if (bannerDismissBtn) {
+    bannerDismissBtn.addEventListener("click", () => {
+        bannerDismissed = true;
+        bannerEl.style.display = "none";
+    });
+}
+
+// Admin: Save banner message
+if (bannerSaveBtn) {
+    bannerSaveBtn.addEventListener("click", async () => {
+        const message = bannerMessageInput.value.trim();
+        await bannerDoc.set({ message, enabled: false }, { merge: true });
+    });
+}
+
+// Admin: Toggle banner enabled/disabled
+if (bannerToggleBtn) {
+    bannerToggleBtn.addEventListener("click", async () => {
+        const doc = await bannerDoc.get();
+        const currentEnabled = doc.exists ? doc.data().enabled === true : false;
+        const message = bannerMessageInput ? bannerMessageInput.value.trim() : "";
+        if (!currentEnabled && !message) {
+            alert("Please write a banner message before enabling.");
+            return;
+        }
+        await bannerDoc.set({ enabled: !currentEnabled, message }, { merge: true });
+    });
+}
+
 // Hook into existing snapshot listeners to trigger reporting updates
 const originalProposalListener = podsCollection.where("status", "==", "proposal");
 const originalActiveListener = podsCollection.where("status", "==", "active");
