@@ -370,7 +370,7 @@ function renderProposalTile(doc) {
     const data = doc.data();
     const catIdx = getCatIndex(doc.id);
     const voteCount = data.votes ? data.votes.length : 0;
-    const checks = Array.from({ length: 3 }, (_, i) =>
+    const checks = Array.from({ length: 2 }, (_, i) =>
         `<span class="vote-check ${i < voteCount ? 'filled' : ''}">✓</span>`
     ).join("");
     const tile = document.createElement("div");
@@ -500,7 +500,7 @@ function openPodDetail(podId, data, status) {
             : "<li>No votes yet</li>";
         votersHTML = `
             <div class="detail-section">
-                <div class="detail-label">Votes (${data.votes ? data.votes.length : 0}/3)</div>
+                <div class="detail-label">Votes (${data.votes ? data.votes.length : 0}/2)</div>
                 <ul class="member-list">${voterNames}</ul>
             </div>
         `;
@@ -739,8 +739,8 @@ joinSubmitBtn.addEventListener("click", async () => {
         const currentVotes = podData.votes || [];
         const newVotes = [...currentVotes, { name: fullName, votedAt: new Date().toISOString() }];
 
-        if (newVotes.length >= 3) {
-            // 3 votes reached — activate the pod and add all voters as members
+        if (newVotes.length >= 2) {
+            // 2 votes reached — activate the pod and add all voters as members
             const newMembers = newVotes.map(v => ({
                 name: v.name,
                 role: "Member",
@@ -760,7 +760,7 @@ joinSubmitBtn.addEventListener("click", async () => {
                 votes: newVotes
             });
             logActivity("voted", fullName, podData.activityTitle);
-            votesRemaining.textContent = (3 - newVotes.length);
+            votesRemaining.textContent = (2 - newVotes.length);
             closeModalFn(joinModal);
             openModal(voteSuccessModal);
         }

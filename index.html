@@ -64,7 +64,7 @@
     <main class="page" id="page-proposals">
         <div class="page-header">
             <h2>Pod Proposals</h2>
-            <p class="page-description">These are activities proposed by a fellow coworker. All proposals have been approved and need <strong>3 votes</strong> to become an active pod. Once active, the pod moves to the <a href="#" class="desc-link" data-page="dashboard">Activity Pods</a> page where morale budget can be used. Note: only pods on the Activity Pods page are valid for utilizing morale budget.</p>
+            <p class="page-description">These are activities proposed by a fellow coworker. All proposals have been approved and need <strong>2 votes</strong> to become an active pod. Once active, the pod moves to the <a href="#" class="desc-link" data-page="dashboard">Activity Pods</a> page where morale budget can be used. Note: only pods on the Activity Pods page are valid for utilizing morale budget.</p>
         </div>
         <div class="tiles-container" id="proposals-tiles">
             <div class="empty-state" id="proposals-empty">
@@ -132,7 +132,7 @@
                     <ul>
                         <li><strong>Follow morale spending policy</strong> — Make sure your activity is compliant. Pods should not involve purchasing anything dangerous or consist solely of purchasing alcoholic beverages, among other policy guidelines.</li>
                         <li><strong>Admin review first</strong> — Your pod will be sent to Antonio for approval and will <em>not</em> appear on the Pod Proposals page yet. Expect a response within 24–48 hours. You'll be notified whether your pod was approved or, if rejected, given the reason why.</li>
-                        <li><strong>Voting phase</strong> — Once approved, your pod moves to the Pod Proposals page where coworkers can vote for it. Your pod needs <strong>3 votes</strong> to become active — voting also means they're joining the pod!</li>
+                        <li><strong>Voting phase</strong> — Once approved, your pod moves to the Pod Proposals page where coworkers can vote for it. Your pod needs <strong>2 votes</strong> to become active — voting also means they're joining the pod!</li>
                         <li><strong>Morale budget available only when active</strong> — You cannot proceed with your pod or use morale money until it becomes active and is visible on the main Activity Pods dashboard.</li>
                         <li><strong>No notification system yet</strong> — As the pod owner, it's your responsibility to keep tabs on your pod's progress — from gathering enough votes to become active, to seeing who joins. Check back regularly!</li>
                     </ul>
@@ -150,7 +150,7 @@
             </div>
             <div class="modal-body">
                 <div class="success-icon">✅</div>
-                <p>Thanks for the submission! Your pod has been sent to the admin for review — please allow <strong>24–48 hours</strong> for a response. Once approved, it will appear on the <strong>Pod Proposals</strong> page where coworkers can vote for it. Once 3 people vote, the pod becomes active and moves to the Activity Pods dashboard.</p>
+                <p>Thanks for the submission! Your pod has been sent to the admin for review — please allow <strong>24–48 hours</strong> for a response. Once approved, it will appear on the <strong>Pod Proposals</strong> page where coworkers can vote for it. Once 2 people vote, the pod becomes active and moves to the Activity Pods dashboard.</p>
                 <button class="btn-submit" id="successOkBtn">OK</button>
             </div>
         </div>
@@ -204,7 +204,7 @@
         </div>
     </div>
 
-    <!-- Join Success Modal (for proposals - pod launched after 3 votes) -->
+    <!-- Join Success Modal (for proposals - pod launched after 2 votes) -->
     <div class="modal-overlay" id="joinSuccessProposalModal">
         <div class="modal modal-small">
             <div class="modal-header">
@@ -212,7 +212,7 @@
                 <button class="modal-close" id="closeJoinSuccessProposalModal">&times;</button>
             </div>
             <div class="modal-body">
-                <p>This pod got 3 votes and is now active! You and the other pod members can now move forward with this activity.</p>
+                <p>This pod got 2 votes and is now active! You and the other pod members can now move forward with this activity.</p>
                 <p style="margin-top:8px; font-size:0.95em; color: var(--text-secondary, #888);"><strong>Reminder:</strong> Your vote means you're committed to this pod. You're now a member!</p>
                 <button class="btn-submit" id="joinSuccessProposalOkBtn">OK</button>
             </div>
