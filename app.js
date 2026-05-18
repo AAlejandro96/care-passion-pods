@@ -370,7 +370,7 @@ function renderProposalTile(doc) {
     const data = doc.data();
     const catIdx = getCatIndex(doc.id);
     const voteCount = data.votes ? data.votes.length : 0;
-    const checks = Array.from({ length: 2 }, (_, i) =>
+    const checks = Array.from({ length: 1 }, (_, i) =>
         `<span class="vote-check ${i < voteCount ? 'filled' : ''}">✓</span>`
     ).join("");
     const tile = document.createElement("div");
@@ -433,6 +433,22 @@ function renderActiveTile(doc) {
 podsCollection
     .where("status", "==", "proposal")
     .onSnapshot((snapshot) => {
+        // Auto-promote proposals that already have 1+ votes to active
+        snapshot.docs.forEach(doc => {
+            const data = doc.data();
+            if (data.votes && data.votes.length >= 1) {
+                const newMembers = data.votes.map(v => ({
+                    name: v.name,
+                    role: "Member",
+                    joinedAt: v.votedAt
+                }));
+                podsCollection.doc(doc.id).update({
+                    status: "active",
+                    members: firebase.firestore.FieldValue.arrayUnion(...newMembers)
+                });
+            }
+        });
+
         // Update cache
         cachedProposalPods = {};
         snapshot.docs.forEach(doc => { cachedProposalPods[doc.id] = doc.data(); });
@@ -739,8 +755,8 @@ joinSubmitBtn.addEventListener("click", async () => {
         const currentVotes = podData.votes || [];
         const newVotes = [...currentVotes, { name: fullName, votedAt: new Date().toISOString() }];
 
-        if (newVotes.length >= 2) {
-            // 2 votes reached — activate the pod and add all voters as members
+        if (newVotes.length >= 1) {
+            // 1 vote reached — activate the pod and add all voters as members
             const newMembers = newVotes.map(v => ({
                 name: v.name,
                 role: "Member",
@@ -760,7 +776,7 @@ joinSubmitBtn.addEventListener("click", async () => {
                 votes: newVotes
             });
             logActivity("voted", fullName, podData.activityTitle);
-            votesRemaining.textContent = (2 - newVotes.length);
+            votesRemaining.textContent = (1 - newVotes.length);
             closeModalFn(joinModal);
             openModal(voteSuccessModal);
         }
