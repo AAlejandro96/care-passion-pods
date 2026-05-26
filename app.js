@@ -234,6 +234,50 @@ function navigateTo(pageName) {
     if (pageName === "howitworks") resizeHowItWorksBoxes();
 }
 
+function getAppBasePath() {
+    const firstSegment = window.location.pathname.split("/").filter(Boolean)[0];
+    return firstSegment && firstSegment !== "pod" ? `/${firstSegment}` : "";
+}
+
+function getAppPath() {
+    let path = window.location.pathname;
+    const basePath = getAppBasePath();
+    if (basePath && path.startsWith(basePath)) {
+        path = path.slice(basePath.length) || "/";
+    }
+    return path;
+}
+
+function restoreRedirectPath() {
+    const params = new URLSearchParams(window.location.search);
+    const redirectPath = params.get("path");
+    if (!redirectPath || !redirectPath.startsWith("/")) return;
+
+    window.history.replaceState(null, "", getAppBasePath() + redirectPath);
+}
+
+function getPodShareUrl(podId) {
+    return `${window.location.origin}${getAppBasePath()}/pod/${encodeURIComponent(podId)}`;
+}
+
+async function copyTextToClipboard(text) {
+    if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(text);
+        return;
+    }
+
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    textArea.style.position = "fixed";
+    textArea.style.opacity = "0";
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    const copied = document.execCommand("copy");
+    document.body.removeChild(textArea);
+    if (!copied) throw new Error("Copy command failed");
+}
+
 document.querySelectorAll(".desc-link").forEach(link => {
     link.addEventListener("click", (e) => {
         e.preventDefault();
@@ -583,6 +627,7 @@ function openPodDetail(podId, data, status) {
 
     // Build footer based on locked/status/admin
     let footerHTML = `<button class="btn-exit" id="detailExitBtn">Exit</button>`;
+    footerHTML += `<button class="btn-share" id="detailShareBtn">Copy link</button>`;
 
     if (!isLocked && status !== "past") {
         footerHTML += `<button class="btn-leave" id="detailLeaveBtn">${status === "proposal" ? "Withdraw Vote" : "Leave Pod"}</button>`;
@@ -609,6 +654,20 @@ function openPodDetail(podId, data, status) {
     // Wire up footer buttons
     document.getElementById("detailExitBtn").addEventListener("click", () => {
         closeModalFn(podDetailModal);
+    });
+
+    const shareBtn = document.getElementById("detailShareBtn");
+    shareBtn.addEventListener("click", async () => {
+        try {
+            await copyTextToClipboard(getPodShareUrl(podId));
+            shareBtn.textContent = "Copied!";
+            setTimeout(() => {
+                shareBtn.textContent = "Copy link";
+            }, 1600);
+        } catch (err) {
+            console.warn("Failed to copy pod link:", err);
+            alert(`Copy this pod link: ${getPodShareUrl(podId)}`);
+        }
     });
 
     const leaveBtn = document.getElementById("detailLeaveBtn");
@@ -709,6 +768,31 @@ function openPodDetail(podId, data, status) {
 }
 
 closeDetailModal.addEventListener("click", () => closeModalFn(podDetailModal));
+
+async function openPodFromPath() {
+    restoreRedirectPath();
+    const match = getAppPath().match(/^\/pod\/([^/]+)$/);
+    if (!match) return;
+
+    const podId = decodeURIComponent(match[1]);
+    try {
+        const podSnap = await podsCollection.doc(podId).get();
+        if (!podSnap.exists) {
+            alert("This pod link no longer exists.");
+            return;
+        }
+
+        const data = podSnap.data();
+        const status = data.status || "active";
+        navigateTo(status === "proposal" ? "proposals" : "dashboard");
+        openPodDetail(podId, data, status);
+    } catch (err) {
+        console.warn("Failed to open pod link:", err);
+        alert("Unable to open this pod link. Please try again.");
+    }
+}
+
+openPodFromPath();
 
 // ===========================
 // Join Pod
