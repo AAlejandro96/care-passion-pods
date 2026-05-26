@@ -1211,9 +1211,15 @@ document.getElementById("leaveSubmitBtn").addEventListener("click", async () => 
     if (podData.status === "active") {
         const memberEntry = podData.members && podData.members.find(m => m.name === fullName);
         if (memberEntry) {
-            await podRef.update({
+            const updateData = {
                 members: firebase.firestore.FieldValue.arrayRemove(memberEntry)
-            });
+            };
+            // Also remove from votes array if they voted during proposal phase
+            const voteEntry = podData.votes && podData.votes.find(v => v.name === fullName);
+            if (voteEntry) {
+                updateData.votes = firebase.firestore.FieldValue.arrayRemove(voteEntry);
+            }
+            await podRef.update(updateData);
             logActivity("left", fullName, podData.activityTitle);
             closeModalFn(leaveModal);
             alert("You have left this pod.");
