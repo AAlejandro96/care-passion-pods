@@ -902,7 +902,7 @@ function checkAndMovePastPods() {
     Object.entries(cachedActivePods).forEach(([podId, data]) => {
         if (data.dateTime && data.dateTime !== "TBD") {
             // Parse date like "May 10, 2026 at 3:00 PM EST"
-            const dateStr = data.dateTime.replace(/ at /, " ").replace(/ (EST|CST|MST|PST|AST|HST|UTC|GMT|CET|IST|JST|AEST)$/, "");
+            const dateStr = data.dateTime.replace(/ at /, " ").replace(/ (EST|CST|MST|PST|AST|HST|UTC\/GMT|UTC|GMT|BST|CET|IST|JST|AEST)$/, "");
             const podDate = new Date(dateStr);
             if (!isNaN(podDate.getTime()) && podDate < now) {
                 podsCollection.doc(podId).update({ status: "past", locked: true });
