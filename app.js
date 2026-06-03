@@ -274,6 +274,10 @@ document.querySelectorAll(".modal-overlay").forEach(overlay => {
 // Create Pod
 // ===========================
 createPodBtn.addEventListener("click", () => {
+    if (isSiteLocked()) {
+        alert("The site is currently locked. Creating new pods is disabled.");
+        return;
+    }
     createPodForm.reset();
     openModal(createModal);
 });
@@ -716,6 +720,12 @@ closeDetailModal.addEventListener("click", () => closeModalFn(podDetailModal));
 closeJoinModal.addEventListener("click", () => closeModalFn(joinModal));
 
 joinSubmitBtn.addEventListener("click", async () => {
+    if (isSiteLocked()) {
+        alert("The site is currently locked. Joining pods and voting is disabled.");
+        closeModalFn(joinModal);
+        return;
+    }
+
     const aliasInput = joinNameInput.value.trim();
     if (!aliasInput) return;
 
@@ -1688,3 +1698,143 @@ podsCollection.where("status", "==", "pending").onSnapshot(() => updateReporting
         closeFeedbackModal.addEventListener("click", () => closeModalFn(feedbackModal));
     }
 })();
+
+// ===========================
+// Site Lock Feature
+// ===========================
+let siteLocked = false;
+let siteLockDate = null;
+let siteLockCountdownInterval = null;
+
+const siteLockDoc = db.collection("settings").doc("siteLock");
+const siteLockBanner = document.getElementById("siteLockBanner");
+const siteLockBannerText = document.getElementById("siteLockBannerText");
+const lockSiteBtn = document.getElementById("lockSiteBtn");
+const unlockSiteBtn = document.getElementById("unlockSiteBtn");
+const siteLockModal = document.getElementById("siteLockModal");
+const closeSiteLockModal = document.getElementById("closeSiteLockModal");
+const siteLockSubmitBtn = document.getElementById("siteLockSubmitBtn");
+
+// Listen for site lock state in real time
+siteLockDoc.onSnapshot((doc) => {
+    if (doc.exists) {
+        const data = doc.data();
+        siteLockDate = data.lockDate ? new Date(data.lockDate) : null;
+        siteLocked = data.locked === true;
+    } else {
+        siteLocked = false;
+        siteLockDate = null;
+    }
+    updateSiteLockUI();
+});
+
+function updateSiteLockUI() {
+    // Clear existing countdown
+    if (siteLockCountdownInterval) {
+        clearInterval(siteLockCountdownInterval);
+        siteLockCountdownInterval = null;
+    }
+
+    const now = new Date();
+
+    if (siteLocked) {
+        // Site is currently locked
+        siteLockBanner.style.display = "flex";
+        siteLockBannerText.textContent = "This site is currently locked. Creating pods, voting, and joining are disabled.";
+        document.body.classList.add("site-locked");
+        // Admin buttons
+        if (lockSiteBtn) lockSiteBtn.style.display = "none";
+        if (unlockSiteBtn) unlockSiteBtn.style.display = "inline-block";
+    } else if (siteLockDate && siteLockDate > now) {
+        // Lock date is in the future — show countdown
+        siteLockBanner.style.display = "flex";
+        document.body.classList.remove("site-locked");
+        startLockCountdown();
+        // Admin buttons
+        if (lockSiteBtn) lockSiteBtn.style.display = "none";
+        if (unlockSiteBtn) unlockSiteBtn.style.display = "inline-block";
+    } else {
+        // Not locked, no pending lock
+        siteLockBanner.style.display = "none";
+        document.body.classList.remove("site-locked");
+        // Admin buttons
+        if (lockSiteBtn) lockSiteBtn.style.display = "inline-block";
+        if (unlockSiteBtn) unlockSiteBtn.style.display = "none";
+    }
+}
+
+function startLockCountdown() {
+    function updateCountdown() {
+        const now = new Date();
+        const diff = siteLockDate - now;
+
+        if (diff <= 0) {
+            // Time's up — lock the site
+            clearInterval(siteLockCountdownInterval);
+            siteLockCountdownInterval = null;
+            siteLockDoc.update({ locked: true });
+            return;
+        }
+
+        const hours = Math.floor(diff / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+        const pad = (n) => n.toString().padStart(2, "0");
+        siteLockBannerText.textContent = `Site locks in: ${pad(hours)}h ${pad(minutes)}m ${pad(seconds)}s`;
+    }
+    updateCountdown();
+    siteLockCountdownInterval = setInterval(updateCountdown, 1000);
+}
+
+function isSiteLocked() {
+    if (siteLocked) return true;
+    if (siteLockDate && new Date() >= siteLockDate) return true;
+    return false;
+}
+
+// Admin: Open lock site modal
+if (lockSiteBtn) {
+    lockSiteBtn.addEventListener("click", () => {
+        document.getElementById("siteLockDate").value = "";
+        document.getElementById("siteLockTime").value = "";
+        openModal(siteLockModal);
+    });
+}
+
+// Admin: Close lock site modal
+if (closeSiteLockModal) {
+    closeSiteLockModal.addEventListener("click", () => closeModalFn(siteLockModal));
+}
+
+// Admin: Submit lock date
+if (siteLockSubmitBtn) {
+    siteLockSubmitBtn.addEventListener("click", async () => {
+        const dateVal = document.getElementById("siteLockDate").value;
+        const timeVal = document.getElementById("siteLockTime").value;
+        if (!dateVal || !timeVal) {
+            alert("Please select both a date and time.");
+            return;
+        }
+
+        const lockDateTime = new Date(`${dateVal}T${timeVal}`);
+        const now = new Date();
+
+        if (lockDateTime <= now) {
+            // Lock immediately
+            await siteLockDoc.set({ locked: true, lockDate: lockDateTime.toISOString() }, { merge: true });
+        } else {
+            // Set future lock date
+            await siteLockDoc.set({ locked: false, lockDate: lockDateTime.toISOString() }, { merge: true });
+        }
+
+        closeModalFn(siteLockModal);
+    });
+}
+
+// Admin: Unlock site
+if (unlockSiteBtn) {
+    unlockSiteBtn.addEventListener("click", async () => {
+        await siteLockDoc.set({ locked: false, lockDate: null }, { merge: true });
+    });
+}

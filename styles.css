@@ -830,6 +830,40 @@ body {
 }
 
 /* Announcement Banner */
+/* ===========================
+   Site Lock Banner
+   =========================== */
+.site-lock-banner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: linear-gradient(90deg, #dc2626, #b91c1c);
+    color: #fff;
+    padding: 12px 20px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    text-align: center;
+    position: relative;
+    z-index: 91;
+    line-height: 1.5;
+    letter-spacing: 0.02em;
+}
+
+.site-lock-banner-icon {
+    font-size: 1.1rem;
+}
+
+.site-lock-banner-text {
+    font-variant-numeric: tabular-nums;
+}
+
+.admin-lock-site-controls {
+    display: flex;
+    gap: 10px;
+    margin-top: 8px;
+}
+
 .announcement-banner {
     background: #2563eb;
     color: #fff;
