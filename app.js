@@ -307,8 +307,9 @@ createPodForm.addEventListener("submit", async (e) => {
     // Check if already in a pod
     const existingPod = findUserPod(fullName);
     if (existingPod) {
-        if (existingPod.role === "Organizer" && existingPod.data.status === "pending") {
-            if (confirm(`You are the organizer of "${existingPod.data.activityTitle}" which is pending admin review. Delete it to create a new pod?`)) {
+        if (existingPod.role === "Organizer" && (existingPod.data.status === "pending" || existingPod.data.status === "proposal")) {
+            const statusLabel = existingPod.data.status === "pending" ? "pending admin review" : "awaiting votes";
+            if (confirm(`You are the organizer of "${existingPod.data.activityTitle}" which is ${statusLabel}. Delete it to create a new pod?`)) {
                 await podsCollection.doc(existingPod.podId).delete();
             } else {
                 return;
@@ -740,12 +741,22 @@ joinSubmitBtn.addEventListener("click", async () => {
     if (existingPod) {
         if (existingPod.podId === currentPodId) {
             alert("You are already in this pod.");
+            return;
+        } else if (existingPod.role === "Organizer" && (existingPod.data.status === "pending" || existingPod.data.status === "proposal")) {
+            // Organizer of a pending/proposal pod can delete it to join another
+            const statusLabel = existingPod.data.status === "pending" ? "pending admin review" : "awaiting votes";
+            if (confirm(`You are the organizer of "${existingPod.data.activityTitle}" which is ${statusLabel}. Delete it to proceed?`)) {
+                await podsCollection.doc(existingPod.podId).delete();
+            } else {
+                return;
+            }
         } else if (existingPod.role === "Voter") {
             alert(`You already voted for the pod "${existingPod.data.activityTitle}". You must withdraw your vote from that pod before voting for or joining another.`);
+            return;
         } else {
             alert(`You are already in the pod "${existingPod.data.activityTitle}". You must leave that pod before joining another.`);
+            return;
         }
-        return;
     }
 
     const podRef = podsCollection.doc(currentPodId);
