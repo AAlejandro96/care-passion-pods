@@ -684,7 +684,7 @@ function openPodDetail(podId, data, status) {
     const reactivateBtn = document.getElementById("adminReactivateBtn");
     if (reactivateBtn) {
         reactivateBtn.addEventListener("click", async () => {
-            await podsCollection.doc(podId).update({ status: "active", locked: false });
+            await podsCollection.doc(podId).update({ status: "active", locked: false, reactivated: true });
             closeModalFn(podDetailModal);
         });
     }
@@ -921,6 +921,8 @@ const pastPodsEmpty = document.getElementById("past-pods-empty");
 function checkAndMovePastPods() {
     const now = new Date();
     Object.entries(cachedActivePods).forEach(([podId, data]) => {
+        // Skip pods that were explicitly reactivated by an admin
+        if (data.reactivated) return;
         if (data.dateTime && data.dateTime !== "TBD") {
             // Parse date like "May 10, 2026 at 3:00 PM EST"
             const dateStr = data.dateTime.replace(/ at /, " ").replace(/ (EST|CST|MST|PST|AST|HST|UTC|GMT|CET|IST|JST|AEST)$/, "");
