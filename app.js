@@ -1010,6 +1010,7 @@ adminLoginSubmitBtn.addEventListener("click", () => {
         adminLoginBtn.textContent = "Admin \u2713";
         adminReviewNavLink.forEach(el => el.style.display = "inline-block");
         enableAdminTextBoxes();
+        updateSiteLockUI();
         closeModalFn(adminLoginModal);
     } else {
         adminError.style.display = "block";
@@ -1036,6 +1037,7 @@ function exitAdmin() {
         navigateTo("dashboard");
     }
     disableAdminTextBoxes();
+    updateSiteLockUI();
 }
 
 exitAdminBtn.addEventListener("click", exitAdmin);
@@ -1722,6 +1724,7 @@ const siteLockBanner = document.getElementById("siteLockBanner");
 const siteLockBannerText = document.getElementById("siteLockBannerText");
 const lockSiteBtn = document.getElementById("lockSiteBtn");
 const unlockSiteBtn = document.getElementById("unlockSiteBtn");
+const bannerUnlockBtn = document.getElementById("bannerUnlockBtn");
 const siteLockModal = document.getElementById("siteLockModal");
 const closeSiteLockModal = document.getElementById("closeSiteLockModal");
 const siteLockSubmitBtn = document.getElementById("siteLockSubmitBtn");
@@ -1756,6 +1759,7 @@ function updateSiteLockUI() {
         // Admin buttons
         if (lockSiteBtn) lockSiteBtn.style.display = "none";
         if (unlockSiteBtn) unlockSiteBtn.style.display = "inline-block";
+        if (bannerUnlockBtn) bannerUnlockBtn.style.display = isAdmin ? "inline-block" : "none";
     } else if (siteLockDate && siteLockDate > now) {
         // Lock date is in the future — show countdown
         siteLockBanner.style.display = "flex";
@@ -1764,6 +1768,7 @@ function updateSiteLockUI() {
         // Admin buttons
         if (lockSiteBtn) lockSiteBtn.style.display = "none";
         if (unlockSiteBtn) unlockSiteBtn.style.display = "inline-block";
+        if (bannerUnlockBtn) bannerUnlockBtn.style.display = isAdmin ? "inline-block" : "none";
     } else {
         // Not locked, no pending lock
         siteLockBanner.style.display = "none";
@@ -1771,6 +1776,7 @@ function updateSiteLockUI() {
         // Admin buttons
         if (lockSiteBtn) lockSiteBtn.style.display = "inline-block";
         if (unlockSiteBtn) unlockSiteBtn.style.display = "none";
+        if (bannerUnlockBtn) bannerUnlockBtn.style.display = "none";
     }
 }
 
@@ -1846,6 +1852,13 @@ if (siteLockSubmitBtn) {
 // Admin: Unlock site
 if (unlockSiteBtn) {
     unlockSiteBtn.addEventListener("click", async () => {
+        await siteLockDoc.set({ locked: false, lockDate: null }, { merge: true });
+    });
+}
+
+// Admin: Unlock site from banner
+if (bannerUnlockBtn) {
+    bannerUnlockBtn.addEventListener("click", async () => {
         await siteLockDoc.set({ locked: false, lockDate: null }, { merge: true });
     });
 }

@@ -858,6 +858,23 @@ body {
     font-variant-numeric: tabular-nums;
 }
 
+.site-lock-banner-unlock {
+    margin-left: 12px;
+    padding: 4px 12px;
+    font-size: 0.85rem;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    font-weight: 600;
+    transition: background 0.2s;
+}
+
+.site-lock-banner-unlock:hover {
+    background: rgba(255, 255, 255, 0.35);
+}
+
 .admin-lock-site-controls {
     display: flex;
     gap: 10px;
