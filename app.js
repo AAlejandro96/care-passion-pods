@@ -501,8 +501,6 @@ podsCollection
             });
         }
 
-        // Auto-move past pods
-        checkAndMovePastPods();
     });
 
 // ===========================
@@ -917,7 +915,7 @@ let cachedPastPods = {};
 const pastPodsTiles = document.getElementById("past-pods-tiles");
 const pastPodsEmpty = document.getElementById("past-pods-empty");
 
-// Check active pods for past dates and auto-move them
+// Check active pods for past dates and auto-move them (runs once on page load)
 function checkAndMovePastPods() {
     const now = new Date();
     Object.entries(cachedActivePods).forEach(([podId, data]) => {
@@ -933,6 +931,9 @@ function checkAndMovePastPods() {
         }
     });
 }
+
+// Run once after initial data loads
+setTimeout(() => checkAndMovePastPods(), 3000);
 
 // Run on each active pods snapshot
 function renderPastTile(doc) {
