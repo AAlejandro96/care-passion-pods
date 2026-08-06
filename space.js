@@ -5,259 +5,139 @@
     const canvas = document.getElementById("spaceCanvas");
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
+    ctx.imageSmoothingEnabled = false;
+
+    let width = 0;
+    let height = 0;
+    let pixelSize = 8;
+    let cols = 0;
+    let rows = 0;
+    let stars = [];
+    let rockets = [];
 
     function resize() {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
+        width = window.innerWidth;
+        height = window.innerHeight;
+        canvas.width = width;
+        canvas.height = height;
+        pixelSize = Math.max(6, Math.min(12, Math.floor(width / 120)));
+        cols = Math.ceil(width / pixelSize);
+        rows = Math.ceil(height / pixelSize);
+        generateStars();
+        generateRockets();
     }
-    resize();
-    window.addEventListener("resize", resize);
 
-    // --- Static twinkling stars ---
-    const STAR_COUNT = 200;
-    const stars = [];
-    for (let i = 0; i < STAR_COUNT; i++) {
-        stars.push({
-            x: Math.random() * canvas.width,
-            y: Math.random() * canvas.height,
-            r: Math.random() * 1.8 + 0.3,
-            baseAlpha: Math.random() * 0.5 + 0.3,
-            twinkleSpeed: Math.random() * 0.02 + 0.005,
-            twinkleOffset: Math.random() * Math.PI * 2,
-        });
+    window.addEventListener("resize", resize);
+    resize();
+
+    function generateStars() {
+        stars = [];
+        const count = Math.floor(cols * rows * 0.015);
+        for (let i = 0; i < count; i++) {
+            stars.push({
+                x: Math.floor(Math.random() * cols),
+                y: Math.floor(Math.random() * rows * 0.45),
+                alpha: Math.random() * 0.4 + 0.5,
+                phase: Math.random() * Math.PI * 2,
+                speed: Math.random() * 0.03 + 0.02,
+            });
+        }
+    }
+
+    function generateRockets() {
+        rockets = [];
+        const count = Math.max(3, Math.floor(width / 260));
+        for (let i = 0; i < count; i++) {
+            rockets.push({
+                x: Math.random() * width,
+                y: height * 0.75 + Math.random() * height * 0.18,
+                speed: Math.random() * 0.6 + 0.6,
+                size: Math.floor(pixelSize * (1.2 + Math.random() * 0.8)),
+                offset: Math.random() * 40,
+            });
+        }
+    }
+
+    function drawPixel(x, y, color) {
+        ctx.fillStyle = color;
+        ctx.fillRect(x * pixelSize, y * pixelSize, pixelSize, pixelSize);
+    }
+
+    function drawBackground() {
+        const horizon = Math.floor(rows * 0.68);
+        for (let y = 0; y < rows; y++) {
+            let color;
+            if (y < horizon - 2) {
+                color = `rgb(${12 + y * 2}, ${18 + y * 2}, ${40 + y * 2})`;
+            } else if (y < horizon) {
+                color = `rgb(${110 + (y - horizon + 2) * 20}, ${70 + (y - horizon + 2) * 18}, ${40 + (y - horizon + 2) * 12})`;
+            } else {
+                color = `rgb(${22 + (y - horizon) * 5}, ${26 + (y - horizon) * 7}, ${48 + (y - horizon) * 10})`;
+            }
+            drawPixel(0, y, color);
+            for (let i = 1; i < cols; i++) drawPixel(i, y, color);
+        }
+
+        const sunX = Math.floor(cols * 0.5);
+        const sunY = Math.floor(horizon - 4);
+        const sunRadius = 6;
+        for (let dy = -sunRadius; dy <= sunRadius; dy++) {
+            for (let dx = -sunRadius; dx <= sunRadius; dx++) {
+                if (Math.abs(dx) + Math.abs(dy) <= sunRadius) {
+                    const light = 255 - Math.abs(dy) * 6;
+                    drawPixel(sunX + dx, sunY + dy, `rgb(${light}, ${180 - Math.abs(dx) * 4}, ${80})`);
+                }
+            }
+        }
+
+        for (let band = horizon; band < horizon + 4; band++) {
+            for (let x = 2; x < cols - 2; x += 8) {
+                drawPixel(x + (band % 2), band, `rgb(80, 46, 74)`);
+            }
+        }
     }
 
     function drawStars(time) {
-        for (const s of stars) {
-            const alpha = s.baseAlpha + Math.sin(time * s.twinkleSpeed + s.twinkleOffset) * 0.3;
-            ctx.beginPath();
-            ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(255, 255, 255, ${Math.max(0.05, Math.min(1, alpha))})`;
-            ctx.fill();
+        for (const star of stars) {
+            const alpha = Math.max(0.3, Math.min(1, star.alpha + Math.sin(time * star.speed + star.phase) * 0.25));
+            const gray = Math.floor(220 + alpha * 35);
+            drawPixel(star.x, star.y, `rgba(${gray}, ${gray}, 255, ${alpha})`);
         }
     }
 
-    // Reposition stars on resize
-    window.addEventListener("resize", () => {
-        for (const s of stars) {
-            s.x = Math.random() * canvas.width;
-            s.y = Math.random() * canvas.height;
-        }
-    });
-
-    // --- Shooting stars ---
-    const shootingStars = [];
-
-    function spawnShootingStar() {
-        // Random direction: 0=top-left→bottom-right, 1=top-right→bottom-left, 2=left→right, 3=right→left
-        const dir = Math.floor(Math.random() * 4);
-        let x, y, vx, vy;
-        const speed = Math.random() * 4 + 3;
-
-        switch (dir) {
-            case 0: // top-left to bottom-right
-                x = Math.random() * canvas.width * 0.6;
-                y = -10;
-                vx = speed * (0.7 + Math.random() * 0.6);
-                vy = speed * (0.5 + Math.random() * 0.5);
-                break;
-            case 1: // top-right to bottom-left
-                x = canvas.width * 0.4 + Math.random() * canvas.width * 0.6;
-                y = -10;
-                vx = -speed * (0.7 + Math.random() * 0.6);
-                vy = speed * (0.5 + Math.random() * 0.5);
-                break;
-            case 2: // left to right
-                x = -10;
-                y = Math.random() * canvas.height * 0.5;
-                vx = speed * (0.8 + Math.random() * 0.5);
-                vy = speed * (0.1 + Math.random() * 0.3);
-                break;
-            case 3: // right to left
-                x = canvas.width + 10;
-                y = Math.random() * canvas.height * 0.5;
-                vx = -speed * (0.8 + Math.random() * 0.5);
-                vy = speed * (0.1 + Math.random() * 0.3);
-                break;
-        }
-
-        shootingStars.push({
-            x, y, vx, vy,
-            length: Math.random() * 40 + 30,
-            alpha: 1,
-            decay: Math.random() * 0.006 + 0.004,
-            width: Math.random() * 1.5 + 0.5,
-        });
-    }
-
-    function updateShootingStars() {
-        for (let i = shootingStars.length - 1; i >= 0; i--) {
-            const ss = shootingStars[i];
-            ss.x += ss.vx;
-            ss.y += ss.vy;
-            ss.alpha -= ss.decay;
-            if (ss.alpha <= 0 || ss.x < -100 || ss.x > canvas.width + 100 || ss.y > canvas.height + 100) {
-                shootingStars.splice(i, 1);
+    function drawRockets(time) {
+        for (const rocket of rockets) {
+            rocket.x -= rocket.speed;
+            rocket.y -= rocket.speed * 0.32;
+            rocket.y += Math.sin((time + rocket.offset) * 0.002) * 0.18;
+            if (rocket.x < -rocket.size || rocket.y < -rocket.size) {
+                rocket.x = width + rocket.size;
+                rocket.y = height * 0.75 + Math.random() * height * 0.18;
             }
+            const px = Math.round(rocket.x / pixelSize);
+            const py = Math.round(rocket.y / pixelSize);
+            drawPixel(px, py - 2, "#ffffff");
+            drawPixel(px, py - 1, "#ffffff");
+            drawPixel(px, py, "#ff4f4f");
+            drawPixel(px, py + 1, "#ff8a3f");
+            drawPixel(px, py + 2, "#ffbf5f");
+            drawPixel(px - 1, py + 1, "#ff8a3f");
+            drawPixel(px + 1, py + 1, "#ff8a3f");
+            drawPixel(px - 1, py + 3, "#ff9044");
+            drawPixel(px, py + 3, "#ff5f3f");
+            drawPixel(px + 1, py + 3, "#ff9044");
+            drawPixel(px - 1, py + 4, "#ff5f3f");
+            drawPixel(px, py + 4, "#fc3f2f");
+            drawPixel(px + 1, py + 4, "#ff5f3f");
         }
     }
 
-    function drawShootingStars() {
-        for (const ss of shootingStars) {
-            const angle = Math.atan2(ss.vy, ss.vx);
-            const tailX = ss.x - Math.cos(angle) * ss.length;
-            const tailY = ss.y - Math.sin(angle) * ss.length;
-
-            const grad = ctx.createLinearGradient(tailX, tailY, ss.x, ss.y);
-            grad.addColorStop(0, `rgba(255, 255, 255, 0)`);
-            grad.addColorStop(1, `rgba(255, 255, 255, ${ss.alpha})`);
-
-            ctx.beginPath();
-            ctx.moveTo(tailX, tailY);
-            ctx.lineTo(ss.x, ss.y);
-            ctx.strokeStyle = grad;
-            ctx.lineWidth = ss.width;
-            ctx.lineCap = "round";
-            ctx.stroke();
-
-            // Bright head glow
-            ctx.beginPath();
-            ctx.arc(ss.x, ss.y, ss.width + 1, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(200, 220, 255, ${ss.alpha * 0.6})`;
-            ctx.fill();
-        }
-    }
-
-    // Spawn shooting stars at random intervals
-    let nextShoot = 0;
-    function maybeSpawnShooting(time) {
-        if (time > nextShoot) {
-            spawnShootingStar();
-            nextShoot = time + 800 + Math.random() * 2500;
-        }
-    }
-
-    // --- Floating rocket cats ---
-    const catImages = [];
-    const catSrcs = ["cat-blue.png", "cat-orange.png", "cat-green.png", "cat-purple.png"];
-    let catsLoaded = 0;
-
-    for (const src of catSrcs) {
-        const img = new Image();
-        img.src = src;
-        img.onload = () => catsLoaded++;
-        catImages.push(img);
-    }
-
-    const floatingCats = [];
-
-    function spawnCat() {
-        const imgIdx = Math.floor(Math.random() * catImages.length);
-        // Depth: 0 = far away, 1 = close
-        const depth = Math.random();
-        const size = depth * 120 + 80; // 80-200px (far=smaller, close=huge)
-        const alpha = 1.0; // fully visible
-        const speed = depth * 0.4 + 0.1; // far=slow, close=fast
-
-        // Random edge: 0=left, 1=right, 2=top, 3=bottom
-        const edge = Math.floor(Math.random() * 4);
-        let x, y, vx, vy;
-
-        switch (edge) {
-            case 0: // from left
-                x = -size;
-                y = Math.random() * canvas.height;
-                vx = speed;
-                vy = (Math.random() - 0.5) * speed * 0.8;
-                break;
-            case 1: // from right
-                x = canvas.width + size;
-                y = Math.random() * canvas.height;
-                vx = -speed;
-                vy = (Math.random() - 0.5) * speed * 0.8;
-                break;
-            case 2: // from top
-                x = Math.random() * canvas.width;
-                y = -size;
-                vx = (Math.random() - 0.5) * speed * 0.8;
-                vy = speed;
-                break;
-            case 3: // from bottom
-                x = Math.random() * canvas.width;
-                y = canvas.height + size;
-                vx = (Math.random() - 0.5) * speed * 0.8;
-                vy = -speed;
-                break;
-        }
-
-        floatingCats.push({
-            x, y, vx, vy,
-            size,
-            imgIdx,
-            alpha,
-            wobbleAmp: Math.random() * 15 + 5,
-            wobbleSpeed: Math.random() * 0.002 + 0.001,
-            wobbleOffset: Math.random() * Math.PI * 2,
-            rotation: Math.atan2(vy, vx),
-        });
-    }
-
-    // Start with a few cats
-    for (let i = 0; i < 6; i++) {
-        spawnCat();
-        // Scatter initial cats across the screen
-        const last = floatingCats[floatingCats.length - 1];
-        last.x = Math.random() * canvas.width;
-        last.y = Math.random() * canvas.height;
-    }
-
-    let nextCatSpawn = 0;
-
-    function updateCats(time) {
-        // Spawn new cats periodically
-        if (time > nextCatSpawn && floatingCats.length < 10) {
-            spawnCat();
-            nextCatSpawn = time + 4000 + Math.random() * 6000;
-        }
-
-        for (let i = floatingCats.length - 1; i >= 0; i--) {
-            const c = floatingCats[i];
-            const wobble = Math.sin(time * c.wobbleSpeed + c.wobbleOffset) * c.wobbleAmp * 0.02;
-            c.x += c.vx + wobble * -c.vy;
-            c.y += c.vy + wobble * c.vx;
-
-            // Remove if far off screen
-            const margin = c.size + 50;
-            if (c.x < -margin || c.x > canvas.width + margin ||
-                c.y < -margin || c.y > canvas.height + margin) {
-                floatingCats.splice(i, 1);
-            }
-        }
-    }
-
-    function drawCats() {
-        if (catsLoaded < catImages.length) return;
-        for (const c of floatingCats) {
-            ctx.save();
-            ctx.globalAlpha = c.alpha;
-            ctx.translate(c.x, c.y);
-            ctx.rotate(c.rotation);
-            ctx.drawImage(catImages[c.imgIdx], -c.size / 2, -c.size / 2, c.size, c.size);
-            ctx.restore();
-        }
-    }
-
-    // --- Animation loop ---
     function animate(time) {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-
+        time = time || 0;
+        ctx.clearRect(0, 0, width, height);
+        drawBackground();
         drawStars(time);
-        maybeSpawnShooting(time);
-        updateShootingStars();
-        drawShootingStars();
-        updateCats(time);
-        drawCats();
-
+        drawRockets(time);
         requestAnimationFrame(animate);
     }
 

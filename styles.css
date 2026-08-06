@@ -91,7 +91,7 @@ body {
     height: 100%;
     z-index: -1;
     overflow: hidden;
-    background: radial-gradient(ellipse at 20% 50%, #0d1a2e 0%, #0b0e17 70%);
+    background: linear-gradient(180deg, #091018 0%, #1b2444 40%, #4a2f5d 65%, #cc6a32 82%, #f0b063 100%);
 }
 
 #spaceCanvas {
@@ -100,6 +100,7 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
+    image-rendering: pixelated;
 }
 
 /* ===========================
