@@ -98,6 +98,15 @@ test.describe('Fit and Finish', () => {
     await expect(page.locator('#spaceCanvas')).toBeVisible();
   });
 
+  test('admin can access clear-all-pods controls', async ({ page }) => {
+    await page.click('#adminLoginBtn');
+    await page.fill('#adminPassword', 'aalejandro');
+    await page.click('#adminLoginSubmitBtn');
+    await page.click('[data-page="adminreview"]');
+
+    await expect(page.locator('#clearAllPodsBtn')).toBeVisible();
+  });
+
   // Responsive / Mobile (only in Mobile project)
   test('hamburger menu works on mobile', async ({ page, isMobile }) => {
     test.skip(!isMobile, 'Mobile-only test');

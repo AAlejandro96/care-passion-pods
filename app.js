@@ -206,6 +206,11 @@ const deleteConfirmModal = document.getElementById("deleteConfirmModal");
 const closeDeleteConfirmModal = document.getElementById("closeDeleteConfirmModal");
 const deleteCancelBtn = document.getElementById("deleteCancelBtn");
 const deleteConfirmBtn = document.getElementById("deleteConfirmBtn");
+const clearAllPodsBtn = document.getElementById("clearAllPodsBtn");
+const clearPodsConfirmModal = document.getElementById("clearPodsConfirmModal");
+const closeClearPodsConfirmModal = document.getElementById("closeClearPodsConfirmModal");
+const clearPodsCancelBtn = document.getElementById("clearPodsCancelBtn");
+const clearPodsProceedBtn = document.getElementById("clearPodsProceedBtn");
 
 // ===========================
 // Navigation
@@ -1063,6 +1068,26 @@ deleteConfirmBtn.addEventListener("click", async () => {
     await podsCollection.doc(deletePodId).delete();
     deletePodId = null;
     closeModalFn(deleteConfirmModal);
+});
+
+clearAllPodsBtn.addEventListener("click", () => {
+    if (!isAdmin) return;
+    openModal(clearPodsConfirmModal);
+});
+
+closeClearPodsConfirmModal.addEventListener("click", () => closeModalFn(clearPodsConfirmModal));
+clearPodsCancelBtn.addEventListener("click", () => closeModalFn(clearPodsConfirmModal));
+
+clearPodsProceedBtn.addEventListener("click", async () => {
+    if (!isAdmin) return;
+    const snapshot = await podsCollection.get();
+    const batch = db.batch();
+    snapshot.forEach((doc) => {
+        batch.delete(doc.ref);
+    });
+    await batch.commit();
+    closeModalFn(clearPodsConfirmModal);
+    logActivity("rejected", "Admin", "All pods cleared");
 });
 
 // ===========================
