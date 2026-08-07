@@ -1,145 +1,202 @@
 // ===========================
-// Space Background Animation
+// Pixel-art sunrise background
 // ===========================
 (function () {
     const canvas = document.getElementById("spaceCanvas");
     if (!canvas) return;
+
     const ctx = canvas.getContext("2d");
     ctx.imageSmoothingEnabled = false;
 
     let width = 0;
     let height = 0;
-    let pixelSize = 8;
-    let cols = 0;
-    let rows = 0;
+    let pixel = 6;
     let stars = [];
     let rockets = [];
+    let clouds = [];
 
     function resize() {
         width = window.innerWidth;
         height = window.innerHeight;
         canvas.width = width;
         canvas.height = height;
-        pixelSize = Math.max(6, Math.min(12, Math.floor(width / 120)));
-        cols = Math.ceil(width / pixelSize);
-        rows = Math.ceil(height / pixelSize);
-        generateStars();
-        generateRockets();
+        pixel = Math.max(4, Math.min(8, Math.round(Math.min(width, height) / 150)));
+        buildScene();
     }
 
-    window.addEventListener("resize", resize);
-    resize();
-
-    function generateStars() {
+    function buildScene() {
         stars = [];
-        const count = Math.floor(cols * rows * 0.015);
-        for (let i = 0; i < count; i++) {
+        for (let i = 0; i < 80; i++) {
             stars.push({
-                x: Math.floor(Math.random() * cols),
-                y: Math.floor(Math.random() * rows * 0.45),
-                alpha: Math.random() * 0.4 + 0.5,
-                phase: Math.random() * Math.PI * 2,
-                speed: Math.random() * 0.03 + 0.02,
-            });
-        }
-    }
-
-    function generateRockets() {
-        rockets = [];
-        const count = Math.max(3, Math.floor(width / 260));
-        for (let i = 0; i < count; i++) {
-            rockets.push({
                 x: Math.random() * width,
-                y: height * 0.75 + Math.random() * height * 0.18,
-                speed: Math.random() * 0.6 + 0.6,
-                size: Math.floor(pixelSize * (1.2 + Math.random() * 0.8)),
-                offset: Math.random() * 40,
+                y: Math.random() * height * 0.55,
+                s: Math.random() * 2 + 1,
+                a: Math.random() * 0.8 + 0.2,
+                t: Math.random() * 1000,
             });
         }
-    }
 
-    function drawPixel(x, y, color) {
-        ctx.fillStyle = color;
-        ctx.fillRect(x * pixelSize, y * pixelSize, pixelSize, pixelSize);
-    }
-
-    function drawBackground() {
-        const horizon = Math.floor(rows * 0.68);
-        for (let y = 0; y < rows; y++) {
-            let color;
-            if (y < horizon - 2) {
-                color = `rgb(${12 + y * 2}, ${18 + y * 2}, ${40 + y * 2})`;
-            } else if (y < horizon) {
-                color = `rgb(${110 + (y - horizon + 2) * 20}, ${70 + (y - horizon + 2) * 18}, ${40 + (y - horizon + 2) * 12})`;
-            } else {
-                color = `rgb(${22 + (y - horizon) * 5}, ${26 + (y - horizon) * 7}, ${48 + (y - horizon) * 10})`;
-            }
-            drawPixel(0, y, color);
-            for (let i = 1; i < cols; i++) drawPixel(i, y, color);
+        rockets = [];
+        const rocketCount = Math.max(8, Math.min(16, Math.round(width / 110)));
+        for (let i = 0; i < rocketCount; i++) {
+            rockets.push({
+                x: (i / rocketCount) * width + (Math.random() * 0.08 - 0.04) * width,
+                y: height * (0.22 + Math.random() * 0.46),
+                scale: 1.3 + Math.random() * 1.8,
+                trail: 10 + Math.random() * 12,
+                drift: (Math.random() - 0.5) * 0.4,
+            });
         }
 
-        const sunX = Math.floor(cols * 0.5);
-        const sunY = Math.floor(horizon - 4);
-        const sunRadius = 6;
-        for (let dy = -sunRadius; dy <= sunRadius; dy++) {
-            for (let dx = -sunRadius; dx <= sunRadius; dx++) {
-                if (Math.abs(dx) + Math.abs(dy) <= sunRadius) {
-                    const light = 255 - Math.abs(dy) * 6;
-                    drawPixel(sunX + dx, sunY + dy, `rgb(${light}, ${180 - Math.abs(dx) * 4}, ${80})`);
+        clouds = [
+            { x: width * 0.16, y: height * 0.22, scale: 1.2 },
+            { x: width * 0.68, y: height * 0.18, scale: 1.4 },
+            { x: width * 0.82, y: height * 0.27, scale: 1.1 },
+            { x: width * 0.46, y: height * 0.31, scale: 0.85 }
+        ];
+    }
+
+    function rect(x, y, w, h, color) {
+        ctx.fillStyle = color;
+        ctx.fillRect(x, y, w, h);
+    }
+
+    function drawCloud(x, y, scale) {
+        const block = Math.max(2, Math.round(pixel * 1.2 * scale));
+        const data = [
+            [0, 0, 1, 1, 1, 1, 0, 0],
+            [0, 1, 1, 1, 1, 1, 1, 0],
+            [1, 1, 1, 1, 1, 1, 1, 1],
+            [1, 1, 1, 1, 1, 1, 1, 1],
+            [0, 1, 1, 1, 1, 1, 1, 0],
+            [0, 0, 1, 1, 1, 1, 0, 0],
+        ];
+        for (let row = 0; row < data.length; row++) {
+            for (let col = 0; col < data[row].length; col++) {
+                if (data[row][col]) {
+                    rect(x + col * block, y + row * block, block, block, "#e9d98d");
+                }
+            }
+        }
+    }
+
+    function drawStar(x, y, s, a) {
+        const size = s * 2;
+        const alpha = Math.max(0.2, Math.min(1, a));
+        rect(x, y, size, size, `rgba(255,255,255,${alpha})`);
+        if (size > 2) {
+            rect(x - size, y + size / 2, size * 3, size, `rgba(255,255,255,${alpha * 0.5})`);
+            rect(x + size / 2, y - size, size, size * 3, `rgba(255,255,255,${alpha * 0.5})`);
+        }
+    }
+
+    function drawRocket(x, y, scale) {
+        const s = Math.max(2, Math.round(pixel * scale));
+
+        // trail
+        for (let i = 0; i < 12; i++) {
+            const yy = y + i * s * 2;
+            const alpha = Math.max(0, 1 - i / 12);
+            rect(x - s * 0.5, yy, s, s * 1.3, `rgba(255,255,255,${alpha})`);
+        }
+
+        // body
+        rect(x - s, y + s * 3, s * 2, s * 6, "#081b2f");
+        rect(x - s * 0.8, y + s * 3, s * 1.6, s * 3, "#dfe9ff");
+        rect(x - s * 0.3, y + s * 1.2, s * 0.6, s * 1.8, "#dfe9ff");
+        rect(x - s * 0.6, y + s * 9, s * 1.2, s * 1.5, "#0d2c53");
+        rect(x - s * 0.9, y + s * 8.8, s * 0.5, s * 1.8, "#0d2c53");
+        rect(x + s * 0.4, y + s * 8.8, s * 0.5, s * 1.8, "#0d2c53");
+        rect(x - s * 0.7, y + s * 1.5, s * 0.3, s * 0.8, "#f0f7ff");
+        rect(x + s * 0.4, y + s * 1.5, s * 0.3, s * 0.8, "#f0f7ff");
+
+        // windows and fins
+        rect(x - s * 0.5, y + s * 4.2, s, s, "#dfe9ff");
+        rect(x - s * 0.3, y + s * 5.5, s * 0.6, s * 0.8, "#dfe9ff");
+        rect(x - s * 1.2, y + s * 6.5, s * 0.6, s * 1.5, "#081b2f");
+        rect(x + s * 0.6, y + s * 6.5, s * 0.6, s * 1.5, "#081b2f");
+
+        // flame
+        rect(x - s * 0.4, y + s * 10.7, s * 0.8, s * 1.5, "#f7e07d");
+        rect(x - s * 0.2, y + s * 12.0, s * 0.4, s * 1.2, "#f9b24b");
+    }
+
+    function drawSun() {
+        const horizon = height * 0.7;
+        const sunRadius = Math.max(90, width * 0.15);
+        const cx = width * 0.5;
+        const cy = horizon + 8;
+
+        for (let y = -sunRadius; y <= sunRadius; y += pixel) {
+            for (let x = -sunRadius; x <= sunRadius; x += pixel) {
+                const dist = Math.hypot(x, y);
+                if (dist < sunRadius) {
+                    const glow = 1 - dist / sunRadius;
+                    const tone = 200 + Math.floor(glow * 40);
+                    rect(cx + x, cy + y, pixel, pixel, `rgba(${tone}, ${tone - 10}, ${140}, ${0.7 + glow * 0.3})`);
                 }
             }
         }
 
-        for (let band = horizon; band < horizon + 4; band++) {
-            for (let x = 2; x < cols - 2; x += 8) {
-                drawPixel(x + (band % 2), band, `rgb(80, 46, 74)`);
-            }
+        ctx.fillStyle = "#f2edb2";
+        ctx.fillRect(cx - sunRadius * 0.8, cy - sunRadius * 0.4, sunRadius * 1.6, sunRadius * 0.8);
+        ctx.fillRect(cx - sunRadius * 0.5, cy - sunRadius * 0.2, sunRadius, sunRadius * 0.4);
+    }
+
+    function drawHorizon() {
+        const horizon = height * 0.7;
+        const landTop = horizon + 12;
+
+        for (let y = landTop; y < height; y += pixel) {
+            const intensity = Math.min(1, (y - landTop) / (height - landTop));
+            const color = `rgb(${30 + intensity * 35}, ${40 + intensity * 32}, ${80 + intensity * 30})`;
+            rect(0, y, width, pixel, color);
+        }
+
+        for (let i = 0; i < 18; i++) {
+            const x = i * (width / 18);
+            const base = height * 0.9;
+            const peak = base - (i % 3) * 18 - 18;
+            rect(x, peak, 24, base - peak, "#0b2348");
+            rect(x + 8, peak - 18, 10, 18, "#0b2348");
+            rect(x + 4, peak - 36, 18, 18, "#0b2348");
         }
     }
 
-    function drawStars(time) {
+    function drawSky() {
+        const sky = "#0e2f7a";
+        rect(0, 0, width, height, sky);
+
         for (const star of stars) {
-            const alpha = Math.max(0.3, Math.min(1, star.alpha + Math.sin(time * star.speed + star.phase) * 0.25));
-            const gray = Math.floor(220 + alpha * 35);
-            drawPixel(star.x, star.y, `rgba(${gray}, ${gray}, 255, ${alpha})`);
+            const pulse = 0.4 + Math.sin((performance.now() * 0.0015) + star.t) * 0.5;
+            drawStar(star.x, star.y, star.s, star.a * (0.4 + pulse));
         }
+
+        for (const cloud of clouds) {
+            drawCloud(cloud.x, cloud.y, cloud.scale);
+        }
+
+        drawSun();
     }
 
-    function drawRockets(time) {
+    function renderScene(time) {
+        drawSky();
+
         for (const rocket of rockets) {
-            rocket.x -= rocket.speed;
-            rocket.y -= rocket.speed * 0.32;
-            rocket.y += Math.sin((time + rocket.offset) * 0.002) * 0.18;
-            if (rocket.x < -rocket.size || rocket.y < -rocket.size) {
-                rocket.x = width + rocket.size;
-                rocket.y = height * 0.75 + Math.random() * height * 0.18;
-            }
-            const px = Math.round(rocket.x / pixelSize);
-            const py = Math.round(rocket.y / pixelSize);
-            drawPixel(px, py - 2, "#ffffff");
-            drawPixel(px, py - 1, "#ffffff");
-            drawPixel(px, py, "#ff4f4f");
-            drawPixel(px, py + 1, "#ff8a3f");
-            drawPixel(px, py + 2, "#ffbf5f");
-            drawPixel(px - 1, py + 1, "#ff8a3f");
-            drawPixel(px + 1, py + 1, "#ff8a3f");
-            drawPixel(px - 1, py + 3, "#ff9044");
-            drawPixel(px, py + 3, "#ff5f3f");
-            drawPixel(px + 1, py + 3, "#ff9044");
-            drawPixel(px - 1, py + 4, "#ff5f3f");
-            drawPixel(px, py + 4, "#fc3f2f");
-            drawPixel(px + 1, py + 4, "#ff5f3f");
+            const x = rocket.x + Math.sin(time * 0.0006 + rocket.x * 0.01) * 10;
+            const y = rocket.y + Math.cos(time * 0.0008 + rocket.y * 0.02) * 6;
+            drawRocket(x, y, rocket.scale);
         }
+
+        drawHorizon();
     }
 
     function animate(time) {
-        time = time || 0;
-        ctx.clearRect(0, 0, width, height);
-        drawBackground();
-        drawStars(time);
-        drawRockets(time);
+        renderScene(time);
         requestAnimationFrame(animate);
     }
 
+    window.addEventListener("resize", resize);
+    resize();
     requestAnimationFrame(animate);
 })();
