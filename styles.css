@@ -91,16 +91,12 @@ body {
     height: 100%;
     z-index: -1;
     overflow: hidden;
-    background: linear-gradient(180deg, #091018 0%, #1b2444 40%, #4a2f5d 65%, #cc6a32 82%, #f0b063 100%);
+    background: url('bg.png') center center / cover no-repeat;
+    background-color: #0e1a2e;
 }
 
 #spaceCanvas {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    image-rendering: pixelated;
+    display: none;
 }
 
 /* ===========================
