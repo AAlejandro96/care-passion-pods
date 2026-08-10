@@ -674,6 +674,23 @@ body {
     border-color: var(--text-muted);
 }
 
+.btn-share {
+    padding: 10px 24px;
+    border: 1px solid var(--blue-medium);
+    border-radius: var(--radius-sm);
+    background: var(--badge-bg);
+    color: var(--badge-color);
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition);
+}
+
+.btn-share:hover {
+    background: var(--blue-medium);
+    color: var(--white);
+}
+
 .btn-join {
     padding: 10px 24px;
     border: none;

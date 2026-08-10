@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Care Activity Pods</title>
+</head>
+<body>
+    <script>
+        const firstSegment = window.location.pathname.split("/").filter(Boolean)[0];
+        const basePath = firstSegment && firstSegment !== "pod" ? `/${firstSegment}` : "";
+        const path = basePath
+            ? window.location.pathname.slice(basePath.length) || "/"
+            : window.location.pathname;
+        const appRoot = basePath ? `${basePath}/` : "/";
+        window.location.replace(`${appRoot}?path=${encodeURIComponent(path + window.location.search + window.location.hash)}`);
+    </script>
+</body>
+</html>
